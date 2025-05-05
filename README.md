@@ -225,3 +225,9 @@ To clarify behavior rules in our community, GrandNode has adopted the code of co
 
 ## License
 GrandNode is completely free and distributed under the GNU General Public License v3.0. It's available [here](LICENSE)
+
+## Updating
+```
+git fetch upstream
+git merge upstream/main
+```
