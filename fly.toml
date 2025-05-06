@@ -6,6 +6,9 @@
 app = 'upper49th'
 primary_region = 'sea'
 
+[env]
+  ASPNETCORE_URLS = "http://0.0.0.0:8080"
+
 [build]
 
 [http_service]
