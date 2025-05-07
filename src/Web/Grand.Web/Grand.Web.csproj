@@ -28,7 +28,7 @@
 	</ItemGroup>
 	
 	<ItemGroup>
-		<Content Include="App_Data\**" CopyToPublishDirectory="PreserveNewest" Exclude="App_Data\appsettings.json;App_Data\DataProtectionKeys\*.xml;" />
+		<Content Include="App_Data\**" CopyToPublishDirectory="PreserveNewest" Exclude="App_Data\appsettings.json;App_Data\appsettings.Development.json;App_Data\DataProtectionKeys\*.xml;" />
 		<Content Include="Roslyn\**" CopyToPublishDirectory="PreserveNewest" Exclude="Roslyn\**\*.dll" />
 		<Content Remove="wwwroot\assets\images\thumbs\*.jpeg;wwwroot\assets\images\thumbs\*.jpg;wwwroot\assets\images\thumbs\*.png" />
 	</ItemGroup>

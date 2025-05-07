@@ -20,6 +20,17 @@ public static class ConfigurationExtensions
             if (!string.IsNullOrEmpty(appSettings))
                 configuration.AddJsonFile($"App_Data/{appSettings}/appsettings.json");
         }
+
+        //Customed by Joe: checks if environment is Development if appsettings.Development.json exists, and if it does then load as Development
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+        if (environment == "Development")
+        {
+            var developmentConfigPath = "App_Data/appsettings.Development.json";
+            if (File.Exists(developmentConfigPath))
+            {
+                configuration.AddJsonFile("App_Data/appsettings.Development.json", optional: true, reloadOnChange: true);
+            }
+        }
     }
 
     public static void ConfigureApplicationSettings(this WebApplicationBuilder builder)
