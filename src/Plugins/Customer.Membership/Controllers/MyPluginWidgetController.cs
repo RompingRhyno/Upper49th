@@ -24,6 +24,7 @@ namespace Customer.Membership.Controllers
             return View("~/Views/Index.cshtml");
         }
 
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

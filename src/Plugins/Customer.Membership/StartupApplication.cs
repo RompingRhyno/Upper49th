@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Grand.Web.Common;
+using Grand.Business.Common.Services.Directory;
 
 namespace Customer.Membership;
 
@@ -13,6 +15,8 @@ public class StartupApplication : IStartupApplication
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<IWidgetProvider, MyPluginWidgetProvider>();
+        services.AddScoped<ContextAccessor>();
+        services.AddScoped<GroupService>();
     }
 
     public int Priority => 10;
