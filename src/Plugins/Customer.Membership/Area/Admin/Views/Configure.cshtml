@@ -1,0 +1,16 @@
+@{ Layout = "_ConfigurePlugin"; }
+@model Customer.Membership.Models.SettingsModel
+
+<form asp-area="Admin" asp-controller="MyPlugin" asp-action="Configure" method="post">
+    <div class="form-group">
+        <label asp-for="ApiKey"></label>
+        <input asp-for="ApiKey" class="form-control" />
+        <span asp-validation-for="ApiKey" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="UseSandbox"></label>
+        <input asp-for="UseSandbox" type="checkbox" class="form-check-input" />
+        <span asp-validation-for="UseSandbox" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+</form>
