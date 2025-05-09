@@ -18,9 +18,9 @@ public class FixedRateShippingPlugin(
     public override async Task Install()
     {
         //locales
-        await pluginTranslateResource.AddOrUpdatePluginTranslateResource("Shipping.FixedRate.FriendlyName", "Shipping fixed rate");
-        await pluginTranslateResource.AddOrUpdatePluginTranslateResource("Plugins.Shipping.FixedRateShipping.Fields.ShippingMethodName", "Shipping method");
-        await pluginTranslateResource.AddOrUpdatePluginTranslateResource("Plugins.Shipping.FixedRateShipping.Fields.Rate", "Rate");
+        await pluginTranslateResource.AddOrUpdatePluginTranslateResource("Shipping.VendorFixedRate.FriendlyName", "Vendor shipping fixed rate");
+        await pluginTranslateResource.AddOrUpdatePluginTranslateResource("Plugins.Shipping.VendorFixedRateShipping.Fields.ShippingMethodName", "Shipping method");
+        await pluginTranslateResource.AddOrUpdatePluginTranslateResource("Plugins.Shipping.VendorFixedRateShipping.Fields.Rate", "Rate");
 
         await base.Install();
     }
@@ -34,7 +34,7 @@ public class FixedRateShippingPlugin(
         //locales
         await pluginTranslateResource.DeletePluginTranslationResource("Plugins.Shipping.VendorFixedRateShipping.Fields.ShippingMethodName");
         await pluginTranslateResource.DeletePluginTranslationResource("Plugins.Shipping.VendorFixedRateShipping.Fields.Rate");
-        await pluginTranslateResource.DeletePluginTranslationResource("Shipping.FixedRate.FriendlyName");
+        await pluginTranslateResource.DeletePluginTranslationResource("Shipping.VendorFixedRate.FriendlyName");
 
         await base.Uninstall();
     }
