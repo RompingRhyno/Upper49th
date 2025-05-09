@@ -12,15 +12,15 @@ using Customer.Membership.Models;
 
 [AuthorizeAdmin]
 [Area("Admin")]
-public class MyPluginController : BasePluginController
+public class MembershipController : BasePluginController
 {
     private readonly ISettingService _settingService;
-    private readonly MyPluginSettings _myPluginSettings;
+    private readonly MembershipSettings _MembershipSettings;
 
-    public MyPluginController(ISettingService settingService, MyPluginSettings myPluginSettings)
+    public MembershipController(ISettingService settingService, MembershipSettings MembershipSettings)
     {
         _settingService = settingService;
-        _myPluginSettings = myPluginSettings;
+        _MembershipSettings = MembershipSettings;
     }
 
     [HttpGet]
@@ -28,8 +28,8 @@ public class MyPluginController : BasePluginController
     {
         var model = new SettingsModel()
         {
-            ApiKey = _myPluginSettings.ApiKey,
-            UseSandbox = _myPluginSettings.UseSandbox
+            ApiKey = _MembershipSettings.ApiKey,
+            UseSandbox = _MembershipSettings.UseSandbox
         };
         Console.WriteLine("ABOUT TO DO SOMETHING!!!");
         Console.WriteLine(model.ApiKey);
@@ -39,9 +39,9 @@ public class MyPluginController : BasePluginController
     [HttpPost]
     public async Task<IActionResult> Configure(SettingsModel model)
     {
-        _myPluginSettings.UseSandbox = model.UseSandbox;
-        _myPluginSettings.ApiKey = model.ApiKey;
-        await _settingService.SaveSetting(_myPluginSettings);
+        _MembershipSettings.UseSandbox = model.UseSandbox;
+        _MembershipSettings.ApiKey = model.ApiKey;
+        await _settingService.SaveSetting(_MembershipSettings);
         Success("Success");
         return await Task.FromResult(Configure());
     }

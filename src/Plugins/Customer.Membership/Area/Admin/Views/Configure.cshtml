@@ -1,7 +1,7 @@
 @{ Layout = "_ConfigurePlugin"; }
 @model Customer.Membership.Models.SettingsModel
 
-<form asp-area="Admin" asp-controller="MyPlugin" asp-action="Configure" method="post">
+<form asp-area="Admin" asp-controller="Membership" asp-action="Configure" method="post">
     <div class="form-group">
         <label asp-for="ApiKey"></label>
         <input asp-for="ApiKey" class="form-control" />

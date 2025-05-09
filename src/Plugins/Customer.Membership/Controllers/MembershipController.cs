@@ -9,19 +9,19 @@ using Microsoft.Extensions.Logging;
 namespace Customer.Membership.Controllers
 {
     [Route("[controller]")]
-    public class MyPluginWidgetController : Controller
+    public class MembershipController : Controller
     {
-        private readonly ILogger<MyPluginWidgetController> _logger;
+        private readonly ILogger<MembershipController> _logger;
 
-        public MyPluginWidgetController(ILogger<MyPluginWidgetController> logger)
+        public MembershipController(ILogger<MembershipController> logger)
         {
             _logger = logger;
         }
 
-        [HttpGet]
+        [HttpGet("membership", Name = "MembershipIndex")]
         public IActionResult Index()
         {
-            return View("~/Views/Index.cshtml");
+            return View("~/Views/Membership/Index.cshtml");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

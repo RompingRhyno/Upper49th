@@ -172,6 +172,9 @@
                                 <b-link href="@Url.RouteUrl("ApplyVendorAccount")">@Loc["Vendors.ApplyAccount"]</b-link>
                             </li>
                         }
+                            <li>
+                                <b-link href="@Url.RouteUrl("MembershipIndex")">@Loc["Membership.SignUp"]</b-link>
+                            </li>
                         @foreach (var topic in Model.Pages.Where(x => x.IncludeInFooterRow2).ToList())
                         {
                             <b-link href="@Url.RouteUrl("Page", new { topic.SeName })" target="_blank">@topic.Name</b-link>

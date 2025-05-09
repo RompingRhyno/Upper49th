@@ -7,7 +7,7 @@ using Grand.Domain.Configuration;
 
 namespace Customer.Membership.Models
 {
-    public class MyPluginSettings : ISettings
+    public class MembershipSettings : ISettings
     {
         public string ApiKey { get; set; }
         public bool UseSandbox { get; set; }
