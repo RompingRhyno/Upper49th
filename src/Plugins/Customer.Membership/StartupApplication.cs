@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Grand.Web.Common;
+using Grand.Business.Common.Services.Directory;
+using Grand.Business.Customers.Services;
 
 namespace Customer.Membership;
 
