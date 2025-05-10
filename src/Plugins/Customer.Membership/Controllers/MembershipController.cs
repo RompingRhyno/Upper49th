@@ -15,7 +15,7 @@ using Grand.Business.Customers.Services;
 
 namespace Customer.Membership.Controllers
 {
-    [Route("[controller]")]
+    [Route("membership")]
     public class MembershipController : Controller
     {
         private readonly ILogger<MembershipController> _logger;
@@ -27,9 +27,9 @@ namespace Customer.Membership.Controllers
 
         public MembershipController(
             ILogger<MembershipController> logger,
-            ContextAccessor contextAccessor,
-            GroupService groupService,
-            CustomerService customerService)
+            IContextAccessor contextAccessor,
+            IGroupService groupService,
+            ICustomerService customerService)
         {
             _logger = logger;
             _workContext = contextAccessor.WorkContext;
@@ -38,13 +38,13 @@ namespace Customer.Membership.Controllers
             _customerService = customerService;
         }
 
-        [HttpGet("membership", Name = "MembershipIndex")]
+        [HttpGet("", Name = "MembershipIndex")]
         public IActionResult Index()
         {
             return View("~/Views/Membership/Index.cshtml");
         }
 
-        [HttpGet]
+        [HttpGet("success")]
         public async Task<IActionResult> Success()
         {
             var groupIds = _workContext.CurrentCustomer.Groups.ToList().ToArray();
