@@ -1913,7 +1913,7 @@ h5.generalTitle {
     right: 0px;
     width: 8px;
     height: 8px;
-    background: #25b232;
+    background: red;
 }
 .h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
     line-height: 1.3;

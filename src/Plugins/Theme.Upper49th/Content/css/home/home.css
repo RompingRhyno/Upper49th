@@ -604,6 +604,7 @@
     object-fit: cover;
     display: block;
 }
+
 .cat-gallery .gallery-item {
     position: relative;
 }
@@ -633,29 +634,38 @@
 
 /* category item */
 
+.category-item img:hover{
+    transform: scale(1.05);  
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);  
+}
+
 .category-item .title {
     display: block;
     position: relative;
     height: 100%;
-    margin: 10px 0 0 0;
+    margin: 0 0 0 0;
     font-size: 16px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    padding-left: 5px;
+    color: white; 
 }
+
 .category-item::before {
     content: "";
     display: block;
-    padding-top: 70%;
+    padding-top: 95%;
 }
 .category-item img {
     position: absolute;
-    top: 0;
+    top: 10;
     right: 0;
     bottom: 0;
     left: 0;
     max-width: 100%;
-    margin: auto 0 40px 0;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    filter: brightness(0.85);
 }
 
 
