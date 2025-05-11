@@ -1,0 +1,5 @@
+# Ignore all plugins in github
+*
+
+# But don't ignore this .gitignore file
+!.gitignore
