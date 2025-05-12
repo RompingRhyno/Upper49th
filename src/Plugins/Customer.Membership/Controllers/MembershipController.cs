@@ -44,6 +44,14 @@ namespace Customer.Membership.Controllers
             return View("~/Views/Membership/Index.cshtml");
         }
 
+        [HttpGet("signup")]
+        public IActionResult SignUp()
+        {
+            return View("~/Views/Membership/SignUp.cshtml");
+        }
+
+
+
         [HttpGet("success")]
         public async Task<IActionResult> Success()
         {
