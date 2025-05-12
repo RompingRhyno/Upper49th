@@ -64,4 +64,20 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup>
+   <Content Update="wwwroot\**\*">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+  </Content>
+</ItemGroup>
+<Target Name="CopyPluginStaticFilesToWebRoot" AfterTargets="Build">
+  <ItemGroup>
+    <_PluginStaticFiles Include="wwwroot\**\*" />
+  </ItemGroup>
+  <Copy
+    SourceFiles="@(_PluginStaticFiles)"
+    DestinationFiles="@(_PluginStaticFiles->'..\..\Web\Grand.Web\wwwroot\Plugins\Customer.Membership\%(RecursiveDir)%(Filename)%(Extension)')"
+    SkipUnchangedFiles="true" />
+</Target>
 </Project>
