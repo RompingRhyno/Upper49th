@@ -304,7 +304,7 @@ a.left-side-toggler:hover {
 }
 .left-side-toggler .inner span { 
     height: 3px;
-    background: #25b232;
+    background: red;
     -webkit-transition: width .4s cubic-bezier(0.645, 0.045, 0.355, 1.000);
     transition: width .4s cubic-bezier(0.645, 0.045, 0.355, 1.000);
 }
