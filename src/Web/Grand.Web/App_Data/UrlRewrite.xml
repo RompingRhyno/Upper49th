@@ -5,7 +5,7 @@
         <rule name="RedirectWwwToNonWww" stopProcessing="false">
             <match url="(.*)" />
             <conditions logicalGrouping="MatchAll" trackAllCaptures="false">
-                <add input="{HTTP_HOST}" pattern="^(www\.)(.*)$" />
+                <add input="{HTTPS}" pattern="^(www\.)(.*)$" />
             </conditions>
             <action type="Redirect" url="https://{C:2}{REQUEST_URI}" redirectType="Permanent" />
         </rule>

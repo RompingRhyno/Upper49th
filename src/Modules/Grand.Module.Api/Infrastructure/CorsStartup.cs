@@ -23,12 +23,16 @@ public class CorsStartup : IStartupApplication
     {
         var allowedOrigins = configuration.GetSection("AllowedHostOrigins").Get<string[]>() ?? Array.Empty<string>();
 
+         // Add localhost:5050 to allowed origins
+        var updatedAllowedOrigins = allowedOrigins.Concat(new[] { "http://localhost:5050" }).ToArray();
+
+
         services.AddCors(options =>
         {
             options.AddPolicy(Configurations.DevelopmentCorsPolicyName,
                 builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
             options.AddPolicy(Configurations.ProductionCorsPolicyName,
-                builder => builder.WithOrigins(allowedOrigins).AllowAnyMethod().AllowAnyHeader());
+                builder => builder.WithOrigins(updatedAllowedOrigins).AllowAnyMethod().AllowAnyHeader());
         });
     }
 
