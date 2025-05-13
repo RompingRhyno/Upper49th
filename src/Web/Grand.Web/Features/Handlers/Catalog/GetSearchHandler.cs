@@ -128,7 +128,7 @@ public class GetSearchHandler : IRequestHandler<GetSearch, SearchModel>
                 Text = _translationService.GetResource("Common.All")
             });
             //all other categories
-            foreach (var c in categories)
+            foreach  (var c in categories.OrderBy(x => x.Breadcrumb, StringComparer.OrdinalIgnoreCase))
                 request.Model.AvailableCategories.Add(new SelectListItem {
                     Value = c.Id,
                     Text = c.Breadcrumb,
