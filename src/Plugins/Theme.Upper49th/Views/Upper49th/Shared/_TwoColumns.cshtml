@@ -1,6 +1,6 @@
 ﻿@{
     Layout = "_Layout";
-    <script asp-location="Footer" asp-order="300" asp-src="/Plugins/Theme.Modern/Content/script/parallax.min.js"></script>
+    <script asp-location="Footer" asp-order="300" asp-src="/Plugins/Theme.Upper49th/Content/script/parallax.min.js"></script>
 
     //current category ID
     var currentCategoryId = "";
@@ -41,7 +41,7 @@
 
 @section head {
     @await RenderSectionAsync("head", false)
-    <script asp-location="Footer" asp-order="301" src="/Plugins/Theme.Modern/Content/script/catalog.js"></script>
+    <script asp-location="Footer" asp-order="301" src="/Plugins/Theme.Upper49th/Content/script/catalog.js"></script>
 }
 
 @if (!string.IsNullOrEmpty(currentCategoryId))
