@@ -80,7 +80,7 @@
     @await Component.InvokeAsync("Widget", new { widgetZone = "categorydetails_before_subcategories", additionalData = Model.Id })
     @*Rendering subcategories*@
     <template v-if="catalog.Model.SubCategories.length > 0">
-        <div id="subcatslider" class="mb-3">
+        <div id="subcatslider" class="mb-2">
             <swiper ref="SubCategories"
                     :options="subcatslider.swiperOptions">
                 <template v-for="item in catalog.Model.SubCategories">
