@@ -10,7 +10,6 @@ primary_region = 'sea'
   ASPNETCORE_URLS = "http://0.0.0.0:8080"
 
 [build]
-  dockerfile = "Dockerfile"
 
 [http_service]
   internal_port = 8080
