@@ -12,6 +12,7 @@ using Grand.Business.Common.Services.Directory;
 using Grand.Business.Core.Interfaces.Common.Directory;
 using Grand.Business.Core.Interfaces.Customers;
 using Grand.Business.Customers.Services;
+using Customer.Membership.Models;
 
 namespace Customer.Membership.Controllers
 {
@@ -45,12 +46,19 @@ namespace Customer.Membership.Controllers
         }
 
         [HttpGet("signup")]
-        public IActionResult SignUp()
+        public async Task<IActionResult> SignUp()
         {
-            return View("~/Views/Membership/SignUp.cshtml");
+
+            var membershipGroups = await _groupService
+            .GetAllCustomerGroups(showHidden: true);
+
+            var model = new MembershipModel
+            {
+                AvailablePlans = membershipGroups.Select(g => g.Name).Where(g => g.Contains("Member")).ToList()
+            };
+
+            return View("~/Views/Membership/SignUp.cshtml", model);
         }
-
-
 
         [HttpGet("success")]
         public async Task<IActionResult> Success()
