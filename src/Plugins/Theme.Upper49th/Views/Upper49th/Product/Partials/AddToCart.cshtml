@@ -46,7 +46,7 @@
                     <div class="plus" onclick="increaseValue()"></div>
                     <div class="minus" onclick="decreaseValue()"></div>
                 </div>
-                <input type="number" inputmode="numeric" id=@($"EnteredQuantity_{Model.ProductId}") name="EnteredQuantity" value="1" class="qty-input form-control text-center">
+               <input type="number" inputmode="numeric" id="@addId" name="EnteredQuantity" value="1" class="qty-input form-control text-center">
                 <script asp-location="Footer">
                         function increaseValue() {
                             var value = parseInt(document.getElementById("@addId").value, 10);
