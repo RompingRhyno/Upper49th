@@ -10,26 +10,35 @@
 <div id="plans">
     @foreach (var plan in Model.AvailablePlans)
     {
-        <button type="button" class="membership-btn" data-plan="@plan">@plan</button>
+        <div class="plan">
+            <h4>@plan.Role</h4>
+            <p><strong>@plan.Price</strong></p>
+            <button type="button" class="membership-btn" data-plan="@plan.Role">Select @plan.Role</button>
+        </div>
     }
 </div>
 
 <form method="post" asp-action="Index">
     <input type="hidden" id="SelectedPlan" name="SelectedPlan" />
-
     <button type="submit">Submit and Pay</button>
 </form>
 
+@section Styles {
+    <link rel="stylesheet" href="~/plugins/Customer.Membership/css/membership.css" />
+}
+
 @section Scripts {
     <script>
-        const availablePlans = @Html.Raw(Json.Serialize(Model.AvailablePlans));
-        console.log("Available plans:", availablePlans);
         let selectedPlan = "";
 
         document.querySelectorAll(".membership-btn").forEach(btn => {
             btn.addEventListener("click", function () {
                 selectedPlan = this.dataset.plan;
                 document.getElementById("SelectedPlan").value = selectedPlan;
+
+                document.querySelectorAll(".membership-btn").forEach(b => b.classList.remove("selected"));
+                this.classList.add("selected");
+
                 console.log("Selected plan:", selectedPlan);
             });
         });

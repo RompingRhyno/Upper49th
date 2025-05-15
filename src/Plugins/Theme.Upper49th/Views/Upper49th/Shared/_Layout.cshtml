@@ -17,6 +17,7 @@
     <resources asp-type="HeadLink"/>
     <resources asp-type="HeadScript"/>
     @await RenderSectionAsync("head", false)
+    @RenderSection("Styles", required: false)
 </head>
 <body>
 <resources asp-type="ScriptHeader"/>

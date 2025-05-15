@@ -13,6 +13,9 @@ using Grand.Business.Core.Interfaces.Common.Directory;
 using Grand.Business.Core.Interfaces.Customers;
 using Grand.Business.Customers.Services;
 using Customer.Membership.Models;
+using Grand.Business.Core.Interfaces.Common.Configuration;
+using Customer.Membership.Domain.Settings;
+
 
 namespace Customer.Membership.Controllers
 {
@@ -24,19 +27,22 @@ namespace Customer.Membership.Controllers
         private readonly IStoreContext _storeContext;
         private readonly IGroupService _groupService;
         private readonly ICustomerService _customerService;
+        private readonly ISettingService _settingService;
 
 
         public MembershipController(
             ILogger<MembershipController> logger,
             IContextAccessor contextAccessor,
             IGroupService groupService,
-            ICustomerService customerService)
+            ICustomerService customerService,
+            ISettingService settingService)
         {
             _logger = logger;
             _workContext = contextAccessor.WorkContext;
             _storeContext = contextAccessor.StoreContext;
             _groupService = groupService;
             _customerService = customerService;
+            _settingService = settingService;
         }
 
         [HttpGet("", Name = "MembershipIndex")]
@@ -49,12 +55,14 @@ namespace Customer.Membership.Controllers
         public async Task<IActionResult> SignUp()
         {
 
-            var membershipGroups = await _groupService
-            .GetAllCustomerGroups(showHidden: true);
-
+            var settings = await _settingService.LoadSetting<MembershipSettings>();
             var model = new MembershipModel
             {
-                AvailablePlans = membershipGroups.Select(g => g.Name).Where(g => g.Contains("Member")).ToList()
+                AvailablePlans = settings.Plans.Select(p => new MembershipPlan
+                {
+                    Role = p.Role,
+                    Price = p.Price
+                }).ToList()
             };
 
             return View("~/Views/Membership/SignUp.cshtml", model);
