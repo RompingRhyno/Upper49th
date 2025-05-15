@@ -4,14 +4,16 @@
 }
 @if (!string.IsNullOrEmpty(Model.UpdatedShoppingCartItemId))
 {
-    <input asp-for="UpdatedShoppingCartItemId" type="hidden"/>
+    <input asp-for="UpdatedShoppingCartItemId" type="hidden" />
 }
 @if (Model.EnteredPrice)
 {
     <div class="customer-entered-price mb-3 d-flex w-100 flex-column">
         <div class="price-input">
-            <label for=@($"CustomerEnteredPrice_{Model.ProductId}") class="enter-price-label">@Loc["Products.EnterProductPrice"]</label>
-            <input type="text" id=@($"CustomerEnteredPrice_{Model.ProductId}") name="CustomerEnteredPrice" value="@Convert.ToInt32(Math.Ceiling(Model.CustomerEnteredPrice))" class="form-control enter-price-input"/>
+            <label for=@($"CustomerEnteredPrice_{Model.ProductId}")
+                class="enter-price-label">@Loc["Products.EnterProductPrice"]</label>
+            <input type="text" id=@($"CustomerEnteredPrice_{Model.ProductId}") name="CustomerEnteredPrice"
+                value="@Convert.ToInt32(Math.Ceiling(Model.CustomerEnteredPrice))" class="form-control enter-price-input" />
         </div>
         <div class="price-range pt-1">
             @Model.CustomerEnteredPriceRange
@@ -30,7 +32,8 @@
         {
             @if (Model.AllowedQuantities.Any())
             {
-                <select name="EnteredQuantity" id=@($"EnteredQuantity_{Model.ProductId}") asp-items="Model.AllowedQuantities" class="custom-select form-control qty-dropdown mr-2"></select>
+                <select name="EnteredQuantity" id=@($"EnteredQuantity_{Model.ProductId}") asp-items="Model.AllowedQuantities"
+                    class="custom-select form-control qty-dropdown mr-2"></select>
                 if (!string.IsNullOrEmpty(Model.MeasureUnit))
                 {
                     <span class="qty-unit d-flex align-items-center mr-2">
@@ -42,26 +45,33 @@
             {
                 var addId = "addtocart_" + Model.ProductId + "_EnteredQuantity";
                 <label for="@addId" class="sr-only">@Loc["ShoppingCart.AddToCart"]</label>
+
                 <div class="qty-controls">
-                    <div class="plus" onclick="increaseValue()"></div>
-                    <div class="minus" onclick="decreaseValue()"></div>
+                    <div class="plus" onclick="increaseValue('@addId')">+</div>
+                    <div class="minus" onclick="decreaseValue('@addId')">−</div>
                 </div>
-               <input type="number" inputmode="numeric" id="@addId" name="EnteredQuantity" value="1" class="qty-input form-control text-center">
+
+                <input type="number" inputmode="numeric" id="@addId" name="EnteredQuantity" value="1"
+                    class="qty-input form-control text-center" min="1">
+
                 <script asp-location="Footer">
-                        function increaseValue() {
-                            var value = parseInt(document.getElementById("@addId").value, 10);
-                            value = isNaN(value) ? 0 : value;
-                            value++;
-                            document.getElementById("@addId").value = value;
-                        }
-                        function decreaseValue() {
-                            var value = parseInt(document.getElementById("@addId").value, 10);
-                            value = isNaN(value) ? 0 : value;
-                            value < 2 ? value = 2 : '';
-                            value--;
-                            document.getElementById("@addId").value = value;
-                        }
+                        function increaseValue(id) {
+                    var input = document.getElementById(id);
+                        if (!input) return;
+                        var value = parseInt(input.value, 10);
+                        input.value = isNaN(value) ? 1 : value + 1;
+                }
+
+                        function decreaseValue(id) {
+                    var input = document.getElementById(id);
+                        if (!input) return;
+                        var value = parseInt(input.value, 10);
+                    if (!isNaN(value) && value > 1) {
+                            input.value = value - 1;
+                    }
+                }
                 </script>
+
                 if (!string.IsNullOrEmpty(Model.MeasureUnit))
                 {
                     <span class="qty-unit d-flex align-items-center mr-2">
@@ -72,7 +82,8 @@
 
             {
                 var addToCartText = "";
-                if (!string.IsNullOrEmpty(Model.UpdatedShoppingCartItemId) && Model.UpdateShoppingCartItemType is ShoppingCartType.ShoppingCart or ShoppingCartType.OnHoldCart)
+                if (!string.IsNullOrEmpty(Model.UpdatedShoppingCartItemId) && Model.UpdateShoppingCartItemType is
+                ShoppingCartType.ShoppingCart or ShoppingCartType.OnHoldCart)
                 {
                     addToCartText = Loc["ShoppingCart.AddToCart.Update"];
                 }
@@ -96,7 +107,9 @@
                 }
 
                 <div class="input-group-append">
-                    <button type="button" id="add-to-cart-button-@Model.ProductId" class="btn btn-info w-100 add-to-cart-button d-inline-flex" data-productid="@Model.ProductId" onclick="AxiosCart.addproducttocart_details('@Url.RouteUrl("AddProductDetails", new { productId = Model.ProductId, shoppingCartTypeId = (int)shoppingCartType })', @($"'#product-details-form-{Model.ProductId}'"));return false;">
+                    <button type="button" id="add-to-cart-button-@Model.ProductId"
+                        class="btn btn-info w-100 add-to-cart-button d-inline-flex" data-productid="@Model.ProductId"
+                        onclick="AxiosCart.addproducttocart_details('@Url.RouteUrl("AddProductDetails", new { productId = Model.ProductId, shoppingCartTypeId = (int)shoppingCartType })', @($"'#product-details-form-{Model.ProductId}'"));return false;">
                         <span>@addToCartText</span>
                     </button>
                 </div>

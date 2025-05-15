@@ -1092,6 +1092,17 @@ button.close:hover {
     border: 1px solid rgba(0,0,0,.2);
     border-radius: 0;
 }
+
+.form-control::-webkit-outer-spin-button,
+.form-control::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.form-control[type="number"] {
+    -moz-appearance: textfield;
+}
+
 .form-control:focus,
 .form-control:hover {
     border-color: red;
