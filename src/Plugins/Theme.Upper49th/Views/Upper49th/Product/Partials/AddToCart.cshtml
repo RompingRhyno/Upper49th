@@ -57,6 +57,7 @@
                 <script asp-location="Footer">
                         function increaseValue(id) {
                     var input = document.getElementById(id);
+                        
                         if (!input) return;
                         var value = parseInt(input.value, 10);
                         input.value = isNaN(value) ? 1 : value + 1;
