@@ -634,6 +634,13 @@
 
 /* category item */
 
+.category-item {
+    height: 100% !important; 
+    width: 100% !important ; 
+    padding-bottom: 50px !important;
+    gap: 0;
+}
+
 .category-item img:hover{
     transform: scale(1.05);  
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);  
@@ -644,12 +651,13 @@
     position: relative;
     height: 100%;
     margin: 0 0 0 0;
-    font-size: 16px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     padding-left: 5px;
     color: white; 
+    padding-bottom: 5px;
+    font-size: clamp(14px, 2vw, 25px) !important;
 }
 
 .category-item::before {
