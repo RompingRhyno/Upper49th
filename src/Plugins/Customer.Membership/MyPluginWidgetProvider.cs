@@ -6,7 +6,7 @@ namespace Customer.Membership;
 
 public class MyPluginWidgetProvider : IWidgetProvider
 {
-    public string ConfigurationUrl => "/Admin/MyPlugin/Configure";
+    public string ConfigurationUrl => "/Admin/Membership/Configure";
 
     public string SystemName => "Customer.Membership";
 

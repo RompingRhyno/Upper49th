@@ -545,9 +545,9 @@ public class DefaultHtmlGenerator : IHtmlGenerator
     {
         ArgumentNullException.ThrowIfNull(viewContext);
 
-        if (rows < 0) throw new ArgumentOutOfRangeException($"{nameof(rows)} TextAreaParameterOutOfRange");
+        if (rows < 0) throw new ArgumentOutOfRangeException(nameof(rows), "TextAreaParameterOutOfRange");
 
-        if (columns < 0) throw new ArgumentOutOfRangeException(" nameof(columns) TextAreaParameterOutOfRange");
+        if (columns < 0) throw new ArgumentOutOfRangeException(nameof(columns), "TextAreaParameterOutOfRange");
 
         var fullName = NameAndIdProvider.GetFullHtmlFieldName(viewContext, expression);
         var htmlAttributeDictionary = GetHtmlAttributeDictionaryOrNull(htmlAttributes);
