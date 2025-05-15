@@ -1,5 +1,6 @@
 using Grand.Web.Common.Extensions;
 using Grand.Web.Common.Startup;
+using Grand.Web.Filters;
 using StartupBase = Grand.Infrastructure.StartupBase;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -34,6 +35,9 @@ builder.ConfigureApplicationSettings();
 
 //register task
 builder.Services.RegisterTasks(builder.Configuration);
+
+//custom filter for checking if users are registered
+builder.Services.AddScoped<RequireRegisteredCustomerFilter>();
 
 //build app
 var app = builder.Build();

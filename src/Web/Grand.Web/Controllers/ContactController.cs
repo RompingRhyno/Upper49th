@@ -16,6 +16,7 @@ using Grand.Web.Events;
 using Grand.Web.Models.Contact;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Grand.Web.Filters;
 
 namespace Grand.Web.Controllers;
 
@@ -38,6 +39,7 @@ public class ContactController : BasePublicController
 
     //available even when a store is closed
     [ClosedStore(true)]
+    [RequireRegisteredCustomer]
     [HttpGet]
     public virtual async Task<ActionResult<ContactUsModel>> Index(
         [FromServices] StoreInformationSettings storeInformationSettings,
