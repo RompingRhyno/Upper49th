@@ -1,16 +1,58 @@
-@{ Layout = "_ConfigurePlugin"; }
+@{
+    Layout = "_ConfigurePlugin";
+}
 @model Customer.Membership.Models.SettingsModel
 
-<form asp-area="Admin" asp-controller="Membership" asp-action="Configure" method="post">
+<form asp-area="Admin" asp-controller="AdminMembership" asp-action="Configure" method="post">
+    <h4>Plans</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>Role</th>
+                <th>Price</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.Plans.Count; i++)
+            {
+                <tr>
+                    <td><input asp-for="Plans[@i].Role" class="form-control" readonly /></td>
+                    <td><input asp-for="Plans[@i].Price" class="form-control" /></td>
+                    <td><input type="checkbox" name="RolesToDelete" value="@Model.Plans[i].Role" class="form-control" />
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <hr />
+
+    <h4>Add New Membership Plan</h4>
     <div class="form-group">
-        <label asp-for="ApiKey"></label>
-        <input asp-for="ApiKey" class="form-control" />
-        <span asp-validation-for="ApiKey" class="text-danger"></span>
+        <label>Role</label>
+        <select name="newRole" class="form-control" @(Model.AvailableRoles.Any() ? "" : "disabled")>
+            @if (Model.AvailableRoles.Any())
+            {
+                @foreach (var role in Model.AvailableRoles)
+                {
+                    <option value="@role">@role</option>
+                }
+            }
+            else
+            {
+                <option>
+                    No Roles Available
+                </option>
+            }
+        </select>
     </div>
+
     <div class="form-group">
-        <label asp-for="UseSandbox"></label>
-        <input asp-for="UseSandbox" type="checkbox" class="form-check-input" />
-        <span asp-validation-for="UseSandbox" class="text-danger"></span>
+        <label>Price</label>
+        <input name="newPrice" type="text" class="form-control" placeholder="e.g., 9.99" @(Model.AvailableRoles.Any() ?
+                                                                                                     "" : "disabled") />
     </div>
+
     <button type="submit" class="btn btn-primary">Save</button>
 </form>

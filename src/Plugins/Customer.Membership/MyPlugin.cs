@@ -12,7 +12,7 @@ public class MyPlugin : BasePlugin, IPlugin
 {
     public override string ConfigurationUrl()
     {
-        return "/Admin/Membership/Configure";
+        return "/Admin/AdminMembership/Configure";
     }
 
     public override async Task Install()
