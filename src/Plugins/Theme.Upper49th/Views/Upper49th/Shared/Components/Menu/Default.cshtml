@@ -1,4 +1,5 @@
 ﻿@model MenuModel
+@inject Plugins.Theme.Upper49th.Services.MenuVisibilityService MenuVisibilityService
 @await Component.InvokeAsync("Widget", new { widgetZone = "header_menu_before" })
 @{
     var rootCategories = Model.Categories.ToList();
@@ -117,6 +118,14 @@
                 <li>
                     <a href="@Url.RouteUrl("Blog")">
                         <span class="title">@Loc["Blog"]</span>
+                    </a>
+                </li>
+            }
+            @if (MenuVisibilityService.ShouldShowMembershipMenu())
+            {
+                <li>
+                    <a href="@Url.RouteUrl("MembershipIndex")">
+                        <span class="title">Membership</span>
                     </a>
                 </li>
             }

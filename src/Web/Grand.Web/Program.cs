@@ -48,7 +48,6 @@ app.Use(async (context, next) =>
     await next();
 });
 
-
 //request pipeline
 StartupBase.ConfigureRequestPipeline(app, builder.Environment);
 
