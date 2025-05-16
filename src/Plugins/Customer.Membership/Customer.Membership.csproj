@@ -7,14 +7,12 @@
     <OutputPath>..\..\Web\Grand.Web\Plugins\Customer.Membership\</OutputPath>
     <OutDir>$(OutputPath)</OutDir>
   </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <OutputPath>..\..\Web\Grand.Web\Plugins\Customer.Membership\</OutputPath>
     <OutDir>$(OutputPath)</OutDir>
   </PropertyGroup>
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <RemoveDir Directories="..\..\Web\Grand.Web\Plugins\Customer.Membership\refs" />
-    <RemoveDir Directories="..\..\Web\Grand.Web\Plugins\Customer.Membership \ref" />
-  </Target>
+
   <ItemGroup>
     <ProjectReference Include="..\..\Business\Grand.Business.Authentication\Grand.Business.Authentication.csproj">
       <Private>false</Private>
@@ -55,29 +53,21 @@
     <ProjectReference Include="..\..\Web\Grand.Web.Common\Grand.Web.Common.csproj">
       <Private>false</Private>
     </ProjectReference>
-      <ProjectReference Include="..\..\Core\Grand.Infrastructure\Grand.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\Core\Grand.Domain\Grand.Domain.csproj" />
-    <ProjectReference Include="..\..\Web\Grand.Web.Common\Grand.Web.Common.csproj" />
   </ItemGroup>
+  
   <ItemGroup>
     <None Update="logo.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ItemGroup>
-   <Content Update="wwwroot\**\*">
-    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-  </Content>
-</ItemGroup>
-<Target Name="CopyPluginStaticFilesToWebRoot" AfterTargets="Build">
-  <ItemGroup>
-    <_PluginStaticFiles Include="wwwroot\**\*" />
-  </ItemGroup>
-  <Copy
-    SourceFiles="@(_PluginStaticFiles)"
-    DestinationFiles="@(_PluginStaticFiles->'..\..\Web\Grand.Web\wwwroot\Plugins\Customer.Membership\%(RecursiveDir)%(Filename)%(Extension)')"
-    SkipUnchangedFiles="true" />
-</Target>
+
+  <Target Name="CopyPluginStaticFilesToWebRoot" AfterTargets="Build">
+    <ItemGroup>
+      <_PluginStaticFiles Include="wwwroot\**\*" />
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(_PluginStaticFiles)"
+      DestinationFiles="@(_PluginStaticFiles->'..\..\Web\Grand.Web\wwwroot\Plugins\Customer.Membership\%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+  </Target>
 </Project>
