@@ -1,0 +1,47 @@
+@model Customer.Membership.Models.MembershipModel
+
+@await Component.InvokeAsync("Widget", new { widgetZone = "checkout_payment_method_top" })
+
+@if (Model.PaymentMethods != null && Model.PaymentMethods.Any())
+{
+    <div class="payment-method">
+        <div class="list-inline col-12 mt-2 mb-2 px-0" id="payment-method-block">
+            @for (int i = 0; i < Model.PaymentMethods.Count; i++)
+            {
+                var method = Model.PaymentMethods[i];
+                <div class="col-12 method-name px-0">
+                    <label class="custom-control custom-radio flex-row">
+                        <input type="radio"
+                               id="paymentmethod_@i"
+                               name="SelectedPaymentMethod"
+                               value="@method.PaymentMethodSystemName"
+                               class="custom-control-input"
+                               @(method.Selected ? "checked" : "") />
+                        <span class="custom-control-label"></span>
+
+                        @if (!string.IsNullOrEmpty(method.LogoUrl))
+                        {
+                            <img src="@method.LogoUrl" alt="@method.Name" />
+                        }
+
+                        <span class="custom-control-description pl-1">
+                            @method.Description
+                            @if (!string.IsNullOrEmpty(method.Fee))
+                            {
+                                <span class="ml-1">@method.Fee</span>
+                            }
+                        </span>
+                    </label>
+                </div>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <div class="message-error alert alert-danger my-3">
+        @Loc["Checkout.NoPaymentMethods"]
+    </div>
+}
+
+@await Component.InvokeAsync("Widget", new { widgetZone = "checkout_payment_method_bottom" })

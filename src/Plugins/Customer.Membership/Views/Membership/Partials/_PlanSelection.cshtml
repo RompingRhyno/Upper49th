@@ -1,0 +1,16 @@
+@model Customer.Membership.Models.MembershipModel
+
+<input type="hidden" asp-for="CurrentStep" />
+<input type="hidden" asp-for="SelectedPlan" />
+<span asp-validation-for="SelectedPlan" class="text-danger"></span>
+
+<div id="plans">
+    @foreach (var plan in Model.AvailablePlans)
+    {
+        <div class="plan">
+            <h4>@plan.Role</h4>
+            <p><strong>@plan.Price</strong></p>
+            <button type="button" class="membership-btn" data-plan="@plan.Role">Select @plan.Role</button>
+        </div>
+    }
+</div>
