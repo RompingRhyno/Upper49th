@@ -584,6 +584,28 @@
         }
     </div>
 }
+    <div class="card mb-3">
+    <h3 class="card-header">Your Current Membership</h3>
+    <div class="card-body">
+        <fieldset class="form-group">
+            <legend class="sr-only">Membership Expiration Date</legend>
+
+            <div class="form-group">
+                <label class="col-form-label">Membership Expiration Date</label>
+                <input type="date"
+                       v-model="customer.CurrentMembershipExpiration"
+                       class="form-control"
+                       readonly
+                       disabled />
+            </div>
+
+            <div class="mt-3">
+                <button type="button" class="btn btn-secondary">Cancel</button>
+            </div>
+        </fieldset>
+    </div>
+</div>
+
 <div class="generalMarginSupporter">
     <input type="submit" value="@Loc["Common.Save"]" name="save-info-button" class="btn btn-info save-customer-info-button"/>
 </div>
