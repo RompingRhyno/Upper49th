@@ -30,6 +30,25 @@ builder.Services.AddScoped<RequireRegisteredCustomerFilter>();
 //build app
 var app = builder.Build();
 
+app.Use(async (context, next) =>
+{
+    var host = context.Request.Host.Host;
+
+    if (host.StartsWith("www.", StringComparison.OrdinalIgnoreCase))
+    {
+        // Remove "www." prefix to redirect to root domain
+        var nonWwwHost = host.Substring(4);
+
+        var newUrl = $"{context.Request.Scheme}://{nonWwwHost}{context.Request.Path}{context.Request.QueryString}";
+        context.Response.StatusCode = 301; // Permanent redirect
+        context.Response.Headers.Location = newUrl;
+        return;
+    }
+
+    await next();
+});
+
+
 //request pipeline
 StartupBase.ConfigureRequestPipeline(app, builder.Environment);
 
