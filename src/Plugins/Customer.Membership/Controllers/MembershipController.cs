@@ -68,6 +68,12 @@ namespace Customer.Membership.Controllers
             return View("~/Views/Membership/SignUp.cshtml", model);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> Pay()
+        {
+            return Redirect("/");
+        }
+
         [HttpGet("success")]
         public async Task<IActionResult> Success()
         {

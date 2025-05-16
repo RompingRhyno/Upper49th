@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Grand.Domain.Configuration;
 using System.ComponentModel.DataAnnotations;
 using Customer.Membership.Domain.Settings;
+using Grand.Web.Models.Checkout;
 
 namespace Customer.Membership.Models
 {
@@ -12,6 +13,12 @@ namespace Customer.Membership.Models
     {
         [Required]
         public string SelectedPlan { get; set; }
+
+        [Required]
+        public string SelectedPaymentMethod { get; set; }
+
+        public CheckoutBillingAddressModel BillingAddress { get; set; }
+
 
         public List<MembershipPlan> AvailablePlans { get; set; } = new List<MembershipPlan>();
     }

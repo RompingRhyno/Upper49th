@@ -58,6 +58,7 @@
       <ProjectReference Include="..\..\Core\Grand.Infrastructure\Grand.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Core\Grand.Domain\Grand.Domain.csproj" />
     <ProjectReference Include="..\..\Web\Grand.Web.Common\Grand.Web.Common.csproj" />
+    <ProjectReference Include="..\..\Web\Grand.Web\Grand.Web.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="logo.jpg">
@@ -75,9 +76,6 @@
   <ItemGroup>
     <_PluginStaticFiles Include="wwwroot\**\*" />
   </ItemGroup>
-  <Copy
-    SourceFiles="@(_PluginStaticFiles)"
-    DestinationFiles="@(_PluginStaticFiles->'..\..\Web\Grand.Web\wwwroot\Plugins\Customer.Membership\%(RecursiveDir)%(Filename)%(Extension)')"
-    SkipUnchangedFiles="true" />
+  <Copy SourceFiles="@(_PluginStaticFiles)" DestinationFiles="@(_PluginStaticFiles->'..\..\Web\Grand.Web\wwwroot\Plugins\Customer.Membership\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
 </Target>
 </Project>
