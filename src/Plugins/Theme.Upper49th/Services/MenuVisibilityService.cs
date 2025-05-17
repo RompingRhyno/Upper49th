@@ -1,6 +1,5 @@
 using Grand.Infrastructure.Configuration;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace Plugins.Theme.Upper49th.Services
 {
@@ -28,10 +27,6 @@ namespace Plugins.Theme.Upper49th.Services
 
             bool isInstalled = installedPlugins
                 .Contains("Customer.Membership", StringComparer.OrdinalIgnoreCase);
-
-            // Log to the system logger
-            _logger.LogInformation("InstalledPlugins: {Installed}", config.InstalledPlugins);
-            _logger.LogInformation("Customer.Membership plugin installed? {IsInstalled}", isInstalled);
 
             return isInstalled;
         }
