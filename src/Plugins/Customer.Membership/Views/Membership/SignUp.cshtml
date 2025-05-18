@@ -1,48 +1,94 @@
 @using Customer.Membership.Models
+@model MembershipWizardModel
 
-@model MembershipModel
 @{
     Layout = "_Layout";
+    var planModel = Model as PlanSelectionModel;
+    var billingModel = Model as BillingAddressModel;
+    var paymentModel = Model as PaymentMethodSelectionModel;
 }
 
-<h2>Sign Up for a Membership</h2>
+<div class="membership-signup-container">
+    <h2 class="text-center mb-4">Sign Up for a Membership</h2>
 
-<form method="post" asp-action="SignUp">
-    @Html.AntiForgeryToken()
+    <div asp-validation-summary="All" class="text-danger"></div>
 
-    @if (Model.CurrentStep == 1)
-    {
-        @await Html.PartialAsync("~/Views/Membership/Partials/_PlanSelection.cshtml", Model)
-    }
-    else if (Model.CurrentStep == 2)
-    {
-        @await Html.PartialAsync("~/Views/Membership/Partials/_PaymentMethod.cshtml", Model)
-    }
+    <div class="progress mb-4">
+        <div class="progress-bar" role="progressbar" style="width: @(Model.CurrentStep * 33.33)%"
+            aria-valuenow="@Model.CurrentStep" aria-valuemin="1" aria-valuemax="3">
+            Step @Model.CurrentStep of 3
+        </div>
+    </div>
 
-    <button type="submit" class="btn btn-primary mt-3"> @(Model.CurrentStep == 1 ? "Continue to Billing" : "Complete Sign Up")</button>
+    <form method="post" asp-action="SignUp" class="membership-form" id="signupForm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="CurrentStep" value="@Model.CurrentStep" />
 
-    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-</form>
+        @if (planModel != null)
+        {
+            @await Html.PartialAsync("~/Views/Membership/Partials/_PlanSelection.cshtml", planModel)
+        }
+        else if (billingModel != null)
+        {
+            <input type="hidden" name="SelectedPlan" value="@billingModel.SelectedPlan" />
+            @await Html.PartialAsync("~/Views/Membership/Partials/_BillingAddress.cshtml", billingModel)
+        }
+        else if (paymentModel != null)
+        {
+            <input type="hidden" name="SelectedPlan" value="@paymentModel.SelectedPlan" />
+            @await Html.PartialAsync("~/Views/Membership/Partials/_PaymentMethod.cshtml", paymentModel)
+        }
 
+        <div class="form-navigation mt-4">
+            @if (Model.CurrentStep > 1)
+            {
+                <button type="submit" name="navigation" value="back" class="btn btn-secondary">Back</button>
+            }
+            <button type="submit" name="navigation" value="next" class="btn btn-primary">
+                @(Model.CurrentStep == 1 ? "Continue to Billing" :
+                                Model.CurrentStep == 2 ? "Continue to Payment" : "Complete Sign Up")
+            </button>
+        </div>
+    </form>
+</div>
 
 @section Styles {
     <link rel="stylesheet" href="~/plugins/Customer.Membership/css/membership.css" />
 }
 
+
 @section Scripts {
     <script>
-        let selectedPlan = "";
+        document.addEventListener('DOMContentLoaded', function () {
+            // Update to work with radio buttons
+            document.querySelectorAll('.membership-plan-card').forEach(card => {
+                card.addEventListener('click', function (event) {
+                    // Prevent default if needed
+                    event.preventDefault();
 
-        document.querySelectorAll(".membership-btn").forEach(btn => {
-            btn.addEventListener("click", function () {
-                selectedPlan = this.dataset.plan;
-                document.getElementById("SelectedPlan").value = selectedPlan;
+                    // Remove selected class from all cards
+                    document.querySelectorAll('.membership-plan-card').forEach(c => {
+                        c.classList.remove('selected');
+                    });
 
-                document.querySelectorAll(".membership-btn").forEach(b => b.classList.remove("selected"));
-                this.classList.add("selected");
+                    // Add selected class to clicked card
+                    this.classList.add('selected');
 
-                console.log("Selected plan:", selectedPlan);
+                    // Find and check the radio button inside
+                    const radio = this.querySelector('input[type="radio"]');
+                    if (radio) {
+                        radio.checked = true;
+                        console.log('Selected plan:', radio.value); // Debug log
+                    }
+                });
+
+                // Initialize selected state if radio is checked
+                const radio = card.querySelector('input[type="radio"]');
+                if (radio && radio.checked) {
+                    card.classList.add('selected');
+                }
             });
         });
+
     </script>
 }

@@ -71,14 +71,23 @@ public class AdminMembershipController : BasePluginController
 
         if (!string.IsNullOrWhiteSpace(newRole) && decimal.TryParse(newPrice, out var price) && !updatedPlans.Any(p => p.Role.Equals(newRole)))
         {
+
+            var allRoles = await _groupService.GetAllCustomerGroups(showHidden: true);
+            var matchingGroup = allRoles.FirstOrDefault(g => g.Name == newRole);
+
+            if (matchingGroup == null)
+            {
+                ModelState.AddModelError("", "The selected role was not found.");
+                return View("~/Area/Admin/Views/Configure.cshtml", model);
+            }
             updatedPlans.Add(new MembershipPlan
             {
                 Role = newRole,
+                SystemName = matchingGroup.SystemName,
                 Price = price
             });
+            Console.WriteLine("New role SystemName" + matchingGroup.SystemName);
         }
-
-        Console.WriteLine("New role " + newRole);
 
         settings.Plans = updatedPlans;
 

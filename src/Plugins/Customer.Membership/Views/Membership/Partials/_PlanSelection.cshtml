@@ -1,16 +1,24 @@
-@model Customer.Membership.Models.MembershipModel
+@using Customer.Membership.Models
+@model PlanSelectionModel
 
-<input type="hidden" asp-for="CurrentStep" />
-<input type="hidden" asp-for="SelectedPlan" />
-<span asp-validation-for="SelectedPlan" class="text-danger"></span>
+<div class="plan-selection">
+    <h4 class="mb-3">Choose Your Membership Plan</h4>
+    <span asp-validation-for="SelectedPlan" class="text-danger"></span>
 
-<div id="plans">
-    @foreach (var plan in Model.AvailablePlans)
-    {
-        <div class="plan">
-            <h4>@plan.Role</h4>
-            <p><strong>@plan.Price</strong></p>
-            <button type="button" class="membership-btn" data-plan="@plan.Role">Select @plan.Role</button>
-        </div>
-    }
+    <div class="row">
+        @foreach (var plan in Model.AvailablePlans)
+        {
+            <div class="col-md-4 mb-3">
+                <label class="membership-plan-card">
+                    <input type="radio" asp-for="SelectedPlan" value="@plan.SystemName" class="d-none"
+                        id="plan_@plan.SystemName" />
+                    <div class="card-body">
+                        <h5 class="card-title">@plan.Role</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">$@plan.Price.ToString("0.00")</h6>
+                        <p class="card-text">Includes all premium features</p>
+                    </div>
+                </label>
+            </div>
+        }
+    </div>
 </div>

@@ -1,0 +1,51 @@
+@using Customer.Membership.Models
+@model BillingAddressModel
+
+<div class="billing-address">
+    <h4 class="mb-3">Billing Information</h4>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="BillingAddress.FirstName"></label>
+            <input asp-for="BillingAddress.FirstName" class="form-control" />
+            <span asp-validation-for="BillingAddress.FirstName" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="BillingAddress.LastName"></label>
+            <input asp-for="BillingAddress.LastName" class="form-control" />
+            <span asp-validation-for="BillingAddress.LastName" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="BillingAddress.Email"></label>
+        <input asp-for="BillingAddress.Email" class="form-control" />
+        <span asp-validation-for="BillingAddress.Email" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="BillingAddress.Address1"></label>
+        <input asp-for="BillingAddress.Address1" class="form-control" />
+        <span asp-validation-for="BillingAddress.Address1" class="text-danger"></span>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label asp-for="BillingAddress.City"></label>
+            <input asp-for="BillingAddress.City" class="form-control" />
+            <span asp-validation-for="BillingAddress.City" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="BillingAddress.ZipPostalCode"></label>
+            <input asp-for="BillingAddress.ZipPostalCode" class="form-control" />
+            <span asp-validation-for="BillingAddress.ZipPostalCode" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="BillingAddress.CountryId"></label>
+            <select asp-for="BillingAddress.CountryId" asp-items="Model.BillingAddress.AvailableCountries"
+                class="form-control">
+            </select>
+            <span asp-validation-for="BillingAddress.CountryId" class="text-danger"></span>
+        </div>
+    </div>
+</div>

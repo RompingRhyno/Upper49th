@@ -1,27 +1,64 @@
-.membership-btn.selected {
-    background-color: #007bff;
-    color: white;
-    border: 2px solid #0056b3;
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.6);
-}
-
-.membership-btn {
-    margin: 10px 0;
-    padding: 10px 20px;
-    font-size: 1rem;
+/* Card container styling */
+.membership-plan-card {
+    display: block;
+    border: 1px solid #dee2e6; /* Visible border */
+    border-radius: 0.25rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
     cursor: pointer;
-    border: 1px solid #ccc;
-    background-color: #f9f9f9;
+    transition: all 0.3s ease;
+    background: white;
 }
 
-.plan {
-    border: 1px solid #ddd;
-    padding: 15px;
-    margin-bottom: 15px;
-    border-radius: 5px;
+/* Hover state */
+.membership-plan-card:hover {
+    border-color: #007bff;
+    box-shadow: 0 0 0 1px #007bff;
 }
 
-.plan.selected {
+/* Selected state */
+.membership-plan-card.selected {
     border: 2px solid #007bff;
-    background-color: #eef6ff;
+    background-color: rgba(0, 123, 255, 0.05);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+/* Card content styling */
+.membership-plan-card .card-body {
+    padding: 0; /* Remove default card-body padding */
+}
+
+/* Ensure the label takes full space */
+.membership-plan-card label {
+    display: block;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+}
+
+.payment-method-option {
+    cursor: pointer;
+}
+
+.payment-method-option.active {
+    border: 2px solid #007bff;
+    background-color: #f8f9fa;
+}
+
+.payment-logo {
+    max-height: 30px;
+}
+
+.form-navigation {
+    display: flex;
+    justify-content: space-between;
+}
+
+.progress {
+    height: 20px;
+    border-radius: 10px;
+}
+
+.progress-bar {
+    transition: width 0.3s ease;
 }
