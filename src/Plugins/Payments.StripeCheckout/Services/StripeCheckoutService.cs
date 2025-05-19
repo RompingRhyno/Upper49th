@@ -97,7 +97,8 @@ public class StripeCheckoutService : IStripeCheckoutService
 
         var storeLocation = _contextAccessor.StoreContext.CurrentHost.Url.TrimEnd('/');
 
-        var options = new SessionCreateOptions {
+        var options = new SessionCreateOptions
+        {
             LineItems = [
                 new SessionLineItemOptions {
                     PriceData = new SessionLineItemPriceDataOptions {
@@ -112,12 +113,13 @@ public class StripeCheckoutService : IStripeCheckoutService
             ],
             ClientReferenceId = order.Id,
             CustomerEmail = order.CustomerEmail,
-            PaymentIntentData = new SessionPaymentIntentDataOptions {
+            PaymentIntentData = new SessionPaymentIntentDataOptions
+            {
                 Metadata = new Dictionary<string, string> { { "order_guid", order.OrderGuid.ToString() } }
             },
             Mode = "payment",
-            SuccessUrl = $"{storeLocation}/orderdetails/{order.Id}",
-            CancelUrl = $"{storeLocation}/Plugins/PaymentStripeCheckout/CancelOrder/{order.Id}"
+            SuccessUrl = $"https://localhost:5050/membership/paymentsuccess?orderId={order.Id}",
+            CancelUrl = $"https://localhost:5050/membership/paymentcancel?orderId={order.Id}"
         };
         var service = new SessionService();
         var session = await service.CreateAsync(options);

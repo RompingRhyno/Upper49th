@@ -31,6 +31,7 @@ using Grand.Domain.Payments;
 using Grand.Web.Models.Common;
 using Grand.Domain.Directory;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Payments.StripeCheckout.Services;
 
 namespace Customer.Membership.Controllers
 {
@@ -49,6 +50,8 @@ namespace Customer.Membership.Controllers
         private readonly IOrderService _orderService;
         private readonly OrderSettings _orderSettings;
         private readonly ICountryService _countryService;
+        private readonly IPaymentTransactionService _paymentTransactionService;
+        private readonly IStripeCheckoutService _stripeCheckoutService;
 
 
 
@@ -64,7 +67,9 @@ namespace Customer.Membership.Controllers
             IPaymentService paymentService,
             IOrderService orderService,
             OrderSettings orderSettings,
-            ICountryService countryService)
+            ICountryService countryService,
+            IPaymentTransactionService paymentTransactionService,
+            IStripeCheckoutService stripeCheckoutService)
         {
             _logger = logger;
             _workContext = contextAccessor.WorkContext;
@@ -78,6 +83,8 @@ namespace Customer.Membership.Controllers
             _orderService = orderService;
             _orderSettings = orderSettings;
             _countryService = countryService;
+            _paymentTransactionService = paymentTransactionService;
+            _stripeCheckoutService = stripeCheckoutService;
         }
 
         [HttpGet("", Name = "MembershipIndex")]
@@ -143,8 +150,6 @@ namespace Customer.Membership.Controllers
             if (model.CurrentStep == 1)
             {
 
-                _logger.LogWarning("I get here");
-
                 var planModel = new PlanSelectionModel();
 
                 if (!await TryUpdateModelAsync(planModel))
@@ -193,28 +198,14 @@ namespace Customer.Membership.Controllers
                 billingModel.CurrentStep = model.CurrentStep;
                 billingModel.SelectedPlan = model.SelectedPlan;
 
-                _logger.LogWarning("I get here billing");
-
                 foreach (var key in Request.Form.Keys)
                 {
                     _logger.LogInformation($"Form key: {key}, Value: {Request.Form[key]}");
                 }
 
-                _logger.LogWarning("I get here billing 2");
-
                 if (!await TryUpdateModelAsync(billingModel.BillingAddress, prefix: "BillingAddress"))
                 {
                     _logger.LogWarning("TryUpdateModelAsync failed for BillingModel");
-
-                    // Log ModelState errors
-                    foreach (var key in ModelState.Keys)
-                    {
-                        var errors = ModelState[key].Errors;
-                        foreach (var error in errors)
-                        {
-                            _logger.LogWarning($"ModelState Error for {key}: {error.ErrorMessage}");
-                        }
-                    }
 
                     // Load dropdown values only — DO NOT replace user input
                     billingModel.BillingAddress.AvailableCountries = (await _countryService.GetAllCountries()).Select(c => new SelectListItem
@@ -225,8 +216,6 @@ namespace Customer.Membership.Controllers
 
                     return View("~/Views/Membership/SignUp.cshtml", billingModel);
                 }
-
-                _logger.LogWarning("I get here billing 3");
 
                 //Check if model is invalid and if it is reload pagea
                 if (!ModelState.IsValid)
@@ -266,19 +255,18 @@ namespace Customer.Membership.Controllers
                 {
                     CurrentStep = 3,
                     SelectedPlan = model.SelectedPlan,
-                    BillingAddress = billingModel.BillingAddress,
                     PaymentMethods = await LoadAvailablePaymentMethods()
                 };
 
                 return View("~/Views/Membership/SignUp.cshtml", paymentSelectionModel);
             }
+            //Step 3
             else if (model.CurrentStep == 3)
             {
                 var paymentModel = new PaymentMethodSelectionModel
                 {
                     CurrentStep = model.CurrentStep,
                     SelectedPlan = model.SelectedPlan,
-                    BillingAddress = GetCustomerBillingAddressModel(),
                     PaymentMethods = await LoadAvailablePaymentMethods()
                 };
 
@@ -287,6 +275,8 @@ namespace Customer.Membership.Controllers
                     _logger.LogWarning("TryUpdateModelAsync failed for PaymentMethodSelectionModel");
                 }
 
+                _logger.LogWarning(paymentModel.SelectedPaymentMethod);
+
                 if (string.IsNullOrEmpty(paymentModel.SelectedPaymentMethod))
                 {
                     ModelState.AddModelError(nameof(paymentModel.SelectedPaymentMethod), "Please select a payment method.");
@@ -294,157 +284,137 @@ namespace Customer.Membership.Controllers
 
                 if (!ModelState.IsValid)
                 {
-                    paymentModel.PaymentMethods = await LoadAvailablePaymentMethods(); // Reload options
+                    paymentModel.PaymentMethods = await LoadAvailablePaymentMethods();
                     return View("~/Views/Membership/SignUp.cshtml", paymentModel);
+                }
+
+                //Move to step 4
+
+                var paymentProcessModel = new PaymentProcessModel()
+                {
+                    CurrentStep = 4,
+                    SelectedPlan = model.SelectedPlan,
+                    SelectedPaymentMethod = paymentModel.SelectedPaymentMethod
+                };
+
+                var paymentMethodSystemName = paymentModel.SelectedPaymentMethod;
+
+                var paymentMethod = _paymentService.LoadPaymentMethodBySystemName(paymentMethodSystemName);
+
+                if (paymentMethod != null)
+                {
+                    if (paymentMethod.PaymentMethodType == PaymentMethodType.Redirection)
+                    {
+
+                        var newOrder = new Order
+                        {
+                            OrderNumber = GenerateOrderNumber(),
+                            OrderTotal = (double)(await GetPlanAmount(model.SelectedPlan)),
+                            CustomerCurrencyCode = _workContext.WorkingCurrency?.CurrencyCode,
+                            CustomerEmail = _workContext.CurrentCustomer.Email,
+                            OrderGuid = Guid.NewGuid(),
+                            CustomerId = _workContext.CurrentCustomer.Id,
+                            CreatedOnUtc = DateTime.UtcNow
+                        };
+
+                        newOrder.OrderTags.Add(model.SelectedPlan);
+
+                        await _orderService.InsertOrder(newOrder);
+
+
+                        var paymentTransaction = new PaymentTransaction
+                        {
+                            StoreId = _storeContext.CurrentStore.Id,
+                            CustomerId = _workContext.CurrentCustomer.Id,
+                            PaymentMethodSystemName = paymentMethodSystemName,
+                            TransactionAmount = (double)(await GetPlanAmount(model.SelectedPlan)),
+                            CurrencyCode = _workContext.WorkingCurrency.CurrencyCode,
+                            TransactionStatus = TransactionStatus.Pending
+
+                        };
+
+                        await _paymentTransactionService.InsertPaymentTransaction(paymentTransaction);
+
+                        //Get redirect url
+                        var redirectUrl = await _stripeCheckoutService.CreateRedirectUrl(newOrder);
+                        _logger.LogWarning(redirectUrl);
+
+                        if (!string.IsNullOrEmpty(redirectUrl))
+                        {
+                            paymentProcessModel.RedirectUrl = redirectUrl;
+                        }
+                        else
+                        {
+                            // For non-redirect methods, get the view component name (CURRENTLY UNUSED)
+                            // paymentProcessModel.PaymentViewComponent = "PaymentBrainTree"; //paymentMethod.GetPublicViewComponentName();
+
+                            // paymentProcessModel.PaymentAdditionalData = new Dictionary<string, string>
+                            // {
+                            //     { "amount", (await GetPlanAmount(model.SelectedPlan)).ToString() },
+                            //     { "currency", _workContext.WorkingCurrency.CurrencyCode }
+                            // };
+                        }
+                        return View("~/Views/Membership/SignUp.cshtml", paymentProcessModel);
+                    }
                 }
             }
             return View("~/Views/Membership/Index.cshtml");
         }
 
-        //     // Step 2: Billing Address
-        //     if (model.CurrentStep == 2)
-        //     {
-        //         if (!ModelState.IsValid)
-        //         {
-        //             return View("~/Views/Membership/SignUp.cshtml", model);
-        //         }
+        [HttpGet("paymentsuccess")]
+        public async Task<IActionResult> PaymentSuccess(string orderId)
+        {
+            if (string.IsNullOrEmpty(orderId))
+                return BadRequest("Missing order ID.");
 
-        //         // With this manual conversion:
-        //         var addressModel = model.BillingAddress.BillingNewAddress;
-        //         var address = new Address
-        //         {
-        //             FirstName = addressModel.FirstName,
-        //             LastName = addressModel.LastName,
-        //             Email = addressModel.Email,
-        //             CountryId = addressModel.CountryId,
-        //             StateProvinceId = addressModel.StateProvinceId,
-        //             City = addressModel.City,
-        //             Address1 = addressModel.Address1,
-        //             Address2 = addressModel.Address2,
-        //             ZipPostalCode = addressModel.ZipPostalCode,
-        //             PhoneNumber = addressModel.PhoneNumber
-        //         };
+            var order = await _orderService.GetOrderById(orderId);
+            if (order == null)
+                return NotFound("Order not found.");
 
-        //         _workContext.CurrentCustomer.BillingAddress = address;
-        //         await _customerService.UpdateBillingAddress(address, _workContext.CurrentCustomer.Id);
+            var selectedPlan = order.OrderTags?.FirstOrDefault() ?? string.Empty;
 
-        //         model.CurrentStep = 3;
-        //         model.PaymentMethods = (await LoadAvailablePaymentMethods()).ToList();
-        //         return View("~/Views/Membership/SignUp.cshtml", model);
-        //     }
+            var memberGroup = await _groupService.GetCustomerGroupBySystemName(selectedPlan);
+            await _customerService.InsertCustomerGroupInCustomer(memberGroup, _workContext.CurrentCustomer.Id);
 
-        //     // Step 3: Payment Method
-        //     if (model.CurrentStep == 3)
-        //     {
-        //         if (string.IsNullOrWhiteSpace(model.SelectedPaymentMethod))
-        //         {
-        //             ModelState.AddModelError(nameof(model.SelectedPaymentMethod), "Please select a payment method.");
-        //             model.PaymentMethods = (await LoadAvailablePaymentMethods()).ToList();
-        //             return View("~/Views/Membership/SignUp.cshtml", model);
-        //         }
+            var model = new OrderViewModel
+            {
+                OrderId = order.Id,
+                OrderNumber = order.OrderNumber,
+                Total = order.OrderTotal,
+                Email = order.CustomerEmail,
+                Currency = order.CustomerCurrencyCode,
+                MembershipRole = await GetPlanRole(selectedPlan)
+            };
 
-        //         await _customerService.UpdateUserField(_workContext.CurrentCustomer,
-        //             SystemCustomerFieldNames.SelectedPaymentMethod,
-        //             model.SelectedPaymentMethod,
-        //             _storeContext.CurrentStore.Id);
+            return View("PaymentSuccess", model);
+        }
 
-        //         return await ProcessMembershipOrder(model.SelectedPlan);
-        //     }
+        [HttpGet("paymentcancel")]
+        public async Task<IActionResult> PaymentCancel(string orderId)
+        {
+            if (string.IsNullOrEmpty(orderId))
+                return BadRequest("Missing order ID.");
 
-        //     return View("~/Views/Membership/SignUp.cshtml", model);
-        // }
+            var order = await _orderService.GetOrderById(orderId);
+            if (order == null)
+                return NotFound("Order not found.");
 
-        // private async Task<IActionResult> ProcessMembershipOrder(string selectedPlan)
-        // {
-        //     var plan = (await _settingService.LoadSetting<MembershipSettings>())
-        //         .Plans.FirstOrDefault(p => p.SystemName == selectedPlan);
+            // Optional: You could update order status here to "Cancelled"
 
-        //     if (plan == null)
-        //     {
-        //         ModelState.AddModelError("", "Invalid membership plan selected.");
-        //         return View("~/Views/Membership/SignUp.cshtml", new MembershipModel
-        //         {
-        //             CurrentStep = 1,
-        //             AvailablePlans = (await _settingService.LoadSetting<MembershipSettings>()).Plans.Select(p => new MembershipPlan
-        //             {
-        //                 Role = p.Role,
-        //                 Price = p.Price,
-        //                 SystemName = p.SystemName
-        //             }).ToList(),
-        //             PaymentMethods = (await LoadAvailablePaymentMethods()).ToList()
-        //         });
-        //     }
+            var model = new OrderViewModel
+            {
+                OrderId = order.Id,
+                OrderNumber = order.OrderNumber,
+                Total = order.OrderTotal,
+                Email = order.CustomerEmail,
+                Currency = order.CustomerCurrencyCode
+            };
 
-        // Store the membership price in custom fields so the command handler can access it
-        //         await _customerService.UpdateUserField(_workContext.CurrentCustomer,
-        //                 "MembershipOrderTotal",
-        //             plan.Price,
-        //             _storeContext.CurrentStore.Id);
+            return View("PaymentCancel", model);
+        }
 
-        //         var placeOrderResult = await _mediator.Send(new PlaceOrderCommand());
 
-        //             if (placeOrderResult.Success)
-        //             {
-        //                 // Activate membership - implement your membership service
-        //                 // await _membershipService.ActivateMembership(...);
-
-        //                 if (placeOrderResult.PaymentTransaction != null)
-        //                 {
-        //                     var paymentMethod = _paymentService.LoadPaymentMethodBySystemName(
-        //                         placeOrderResult.PaymentTransaction.PaymentMethodSystemName);
-
-        //                     if (paymentMethod != null && paymentMethod.PaymentMethodType == PaymentMethodType.Redirection)
-        //                     {
-        //                         return RedirectToRoute("CheckoutPaymentInfo", new
-        //                         {
-        //                             paymentTransactionId = placeOrderResult.PaymentTransaction.Id
-        //     });
-        //                     }
-        //                 }
-
-        //                 return RedirectToRoute("CheckoutCompleted", new
-        //                 {
-        //                     orderId = placeOrderResult.PlacedOrder.Id
-        //                 });
-        //             }
-
-        //             foreach (var error in placeOrderResult.Errors)
-        // {
-        //     ModelState.AddModelError("", error);
-        // }
-
-        // return View("~/Views/Membership/SignUp.cshtml", new MembershipModel
-        // {
-        //     CurrentStep = 3,
-        //     AvailablePlans = (await _settingService.LoadSetting<MembershipSettings>()).Plans.Select(p => new MembershipPlan
-        //     {
-        //         Role = p.Role,
-        //         Price = p.Price,
-        //         SystemName = p.SystemName
-        //     }).ToList(),
-        //     PaymentMethods = (await LoadAvailablePaymentMethods()).ToList(),
-        //     SelectedPaymentMethod = _workContext.CurrentCustomer.GetUserFieldFromEntity<string>(
-        //         SystemCustomerFieldNames.SelectedPaymentMethod,
-        //         _storeContext.CurrentStore.Id)
-        // });
-        //         }
-
-        //         private async Task<IList<Grand.Web.Models.Checkout.CheckoutPaymentMethodModel.PaymentMethodModel>> LoadAvailablePaymentMethods()
-        // {
-        //     var filterByCountryId = _workContext.CurrentCustomer.BillingAddress?.CountryId ?? "";
-
-        //     var paymentMethods = await _mediator.Send(new GetPaymentMethod
-        //     {
-        //         Currency = _workContext.WorkingCurrency,
-        //         Customer = _workContext.CurrentCustomer,
-        //         FilterByCountryId = filterByCountryId,
-        //         Language = _workContext.WorkingLanguage,
-        //         Store = _storeContext.CurrentStore
-        //     });
-
-        //     return paymentMethods.PaymentMethods;
-        // }
-
+        //Helper function region
         private AddressModel GetCustomerBillingAddressModel()
         {
             var billingAddress = _workContext.CurrentCustomer.BillingAddress;
@@ -479,7 +449,6 @@ namespace Customer.Membership.Controllers
         }
 
         // Helper function to get payment methods
-        [NonAction]
         private async Task<List<CheckoutPaymentMethodModel.PaymentMethodModel>> LoadAvailablePaymentMethods()
         {
             var customer = _workContext.CurrentCustomer;
@@ -506,6 +475,40 @@ namespace Customer.Membership.Controllers
             });
 
             return model.PaymentMethods.ToList();
+        }
+
+        //Helper function to get plan price
+        private async Task<string> GetPlanRole(string selectedPlan)
+        {
+            var availablePlans = await LoadAvailablePlansAsync();
+            var plan = availablePlans.FirstOrDefault(p => p.SystemName == selectedPlan);
+
+            if (plan == null)
+            {
+                throw new Exception($"Plan '{selectedPlan}' not found");
+            }
+
+            return plan.Role;
+        }
+
+        //Helper function to get plan price
+        private async Task<decimal> GetPlanAmount(string selectedPlan)
+        {
+            var availablePlans = await LoadAvailablePlansAsync();
+            var plan = availablePlans.FirstOrDefault(p => p.SystemName == selectedPlan);
+
+            if (plan == null)
+            {
+                throw new Exception($"Plan '{selectedPlan}' not found");
+            }
+
+            return plan.Price;
+        }
+
+        private int GenerateOrderNumber()
+        {
+            var ticks = DateTime.UtcNow.Ticks;
+            return (int)(ticks % int.MaxValue);
         }
     }
 }

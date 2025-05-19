@@ -1,0 +1,16 @@
+@using Customer.Membership.Models
+@model PaymentProcessModel
+
+<div class="payment-redirect">
+    <h3>Redirecting to payment...</h3>
+    <p>You will be redirected to complete your payment shortly.</p>
+
+    <script>
+        // Redirect immediately to Stripe Checkout
+        window.location.href = "@Model.RedirectUrl";
+    </script>
+
+    <noscript>
+        <p>Please <a href="@Model.RedirectUrl">click here to proceed with payment</a>.</p>
+    </noscript>
+</div>

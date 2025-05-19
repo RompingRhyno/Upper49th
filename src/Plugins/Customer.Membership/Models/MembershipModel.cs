@@ -38,7 +38,20 @@ namespace Customer.Membership.Models
         public List<PaymentMethodModel> PaymentMethods { get; set; }
         [Required(ErrorMessage = "Please select a payment method.")]
         public string SelectedPaymentMethod { get; set; }
-        public AddressModel BillingAddress { get; set; } // Carry forward
 
+    }
+
+    // Step 4 Model
+    public class PaymentProcessModel : MembershipWizardModel
+    {
+        public string SelectedPaymentMethod { get; set; }
+
+        public string RedirectUrl { get; set; }
+
+        public string PaymentViewComponent { get; set; }
+
+        public Dictionary<string, string> PaymentAdditionalData { get; set; } = new();
+
+        public List<string> Errors { get; set; } = new();
     }
 }

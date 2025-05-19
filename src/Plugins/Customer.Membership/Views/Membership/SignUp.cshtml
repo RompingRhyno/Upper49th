@@ -6,6 +6,7 @@
     var planModel = Model as PlanSelectionModel;
     var billingModel = Model as BillingAddressModel;
     var paymentModel = Model as PaymentMethodSelectionModel;
+    var paymentProcessModel = Model as PaymentProcessModel;
 }
 
 <div class="membership-signup-container">
@@ -14,9 +15,9 @@
     <div asp-validation-summary="All" class="text-danger"></div>
 
     <div class="progress mb-4">
-        <div class="progress-bar" role="progressbar" style="width: @(Model.CurrentStep * 33.33)%"
-            aria-valuenow="@Model.CurrentStep" aria-valuemin="1" aria-valuemax="3">
-            Step @Model.CurrentStep of 3
+        <div class="progress-bar" role="progressbar" style="width: @(Model.CurrentStep * 25.00)%"
+            aria-valuenow="@Model.CurrentStep" aria-valuemin="1" aria-valuemax="4">
+            Step @Model.CurrentStep of 4
         </div>
     </div>
 
@@ -37,6 +38,19 @@
         {
             <input type="hidden" name="SelectedPlan" value="@paymentModel.SelectedPlan" />
             @await Html.PartialAsync("~/Views/Membership/Partials/_PaymentMethod.cshtml", paymentModel)
+        }
+        else if (paymentProcessModel != null)
+        {
+            <input type="hidden" name="SelectedPlan" value="@paymentProcessModel.SelectedPlan" />
+
+            @if (!string.IsNullOrEmpty(paymentProcessModel.RedirectUrl))
+            {
+                @await Html.PartialAsync("~/Views/Membership/Partials/_PaymentProcess_Redirect.cshtml", paymentProcessModel)
+            }
+            else
+            {
+                @await Html.PartialAsync("~/Views/Membership/Partials/_PaymentProcess_Form.cshtml", paymentProcessModel)
+            }
         }
 
         <div class="form-navigation mt-4">
