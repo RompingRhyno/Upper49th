@@ -110,7 +110,7 @@ namespace Customer.Membership.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SignUp(MembershipWizardModel model, string navigation)
         {
-            // Portion for back navigation
+            // Back navigation
             if (navigation == "back")
             {
                 var previousStep = Math.Max(1, model.CurrentStep - 1);
@@ -145,7 +145,6 @@ namespace Customer.Membership.Controllers
                 }
             }
 
-            _logger.LogWarning("Is model PlanSelectionModel? {IsPlanModel}", model is PlanSelectionModel);
             //Step 1: Plan Selection
             if (model.CurrentStep == 1)
             {
@@ -156,9 +155,6 @@ namespace Customer.Membership.Controllers
                 {
                     _logger.LogWarning("TryUpdateModelAsync failed for PlanSelectionModel");
                 }
-
-                _logger.LogWarning("Selected plan: {SelectedPlan}", planModel.SelectedPlan);
-
 
                 //Check if model is invalid and if it is reload page
                 if (!ModelState.IsValid)
@@ -173,7 +169,6 @@ namespace Customer.Membership.Controllers
                     planModel.AvailablePlans = await LoadAvailablePlansAsync();
                     return View("~/Views/Membership/SignUp.cshtml", planModel);
                 }
-
 
                 //Move to step 2
                 var billingModel = new BillingAddressModel
@@ -206,8 +201,6 @@ namespace Customer.Membership.Controllers
                 if (!await TryUpdateModelAsync(billingModel.BillingAddress, prefix: "BillingAddress"))
                 {
                     _logger.LogWarning("TryUpdateModelAsync failed for BillingModel");
-
-                    // Load dropdown values only — DO NOT replace user input
                     billingModel.BillingAddress.AvailableCountries = (await _countryService.GetAllCountries()).Select(c => new SelectListItem
                     {
                         Text = c.Name,
@@ -217,7 +210,6 @@ namespace Customer.Membership.Controllers
                     return View("~/Views/Membership/SignUp.cshtml", billingModel);
                 }
 
-                //Check if model is invalid and if it is reload pagea
                 if (!ModelState.IsValid)
                 {
                     billingModel.CurrentStep = 2;
@@ -231,7 +223,7 @@ namespace Customer.Membership.Controllers
                     return View("~/Views/Membership/SignUp.cshtml", billingModel);
                 }
 
-                //Add validation to make sure all fields are filled out
+                // TODO: Add validation to make sure all fields are filled out before proceeding and modifying database with blanks
 
                 var addressModel = billingModel.BillingAddress;
                 var address = new Address
@@ -250,7 +242,7 @@ namespace Customer.Membership.Controllers
                 _workContext.CurrentCustomer.BillingAddress = address;
                 await _customerService.UpdateBillingAddress(address, _workContext.CurrentCustomer.Id);
 
-                //Move to step 3
+                // Move to step 3
                 var paymentSelectionModel = new PaymentMethodSelectionModel()
                 {
                     CurrentStep = 3,
@@ -260,7 +252,7 @@ namespace Customer.Membership.Controllers
 
                 return View("~/Views/Membership/SignUp.cshtml", paymentSelectionModel);
             }
-            //Step 3
+            // Step 3
             else if (model.CurrentStep == 3)
             {
                 var paymentModel = new PaymentMethodSelectionModel
@@ -288,8 +280,7 @@ namespace Customer.Membership.Controllers
                     return View("~/Views/Membership/SignUp.cshtml", paymentModel);
                 }
 
-                //Move to step 4
-
+                // Move to step 4
                 var paymentProcessModel = new PaymentProcessModel()
                 {
                     CurrentStep = 4,
@@ -335,7 +326,7 @@ namespace Customer.Membership.Controllers
 
                         await _paymentTransactionService.InsertPaymentTransaction(paymentTransaction);
 
-                        //Get redirect url
+                        // Get redirect url
                         var redirectUrl = await _stripeCheckoutService.CreateRedirectUrl(newOrder);
                         _logger.LogWarning(redirectUrl);
 
@@ -343,9 +334,9 @@ namespace Customer.Membership.Controllers
                         {
                             paymentProcessModel.RedirectUrl = redirectUrl;
                         }
+                        // For non-redirect methods, get the view component name (CURRENTLY UNUSED)
                         else
                         {
-                            // For non-redirect methods, get the view component name (CURRENTLY UNUSED)
                             // paymentProcessModel.PaymentViewComponent = "PaymentBrainTree"; //paymentMethod.GetPublicViewComponentName();
 
                             // paymentProcessModel.PaymentAdditionalData = new Dictionary<string, string>
@@ -399,7 +390,7 @@ namespace Customer.Membership.Controllers
             if (order == null)
                 return NotFound("Order not found.");
 
-            // Optional: You could update order status here to "Cancelled"
+            // TODO: UPDATE ORDER STATUS HERE
 
             var model = new OrderViewModel
             {
@@ -414,13 +405,14 @@ namespace Customer.Membership.Controllers
         }
 
 
-        //Helper function region
+        // Helper function region
+        // Get customer's existing billing address
         private AddressModel GetCustomerBillingAddressModel()
         {
             var billingAddress = _workContext.CurrentCustomer.BillingAddress;
 
             if (billingAddress == null)
-                return new AddressModel(); // return empty model if no billing address
+                return new AddressModel();
 
             return new AddressModel
             {
@@ -437,6 +429,7 @@ namespace Customer.Membership.Controllers
             };
         }
 
+        // Helper function for loading all available membership plans
         private async Task<List<MembershipPlan>> LoadAvailablePlansAsync()
         {
             var settings = await _settingService.LoadSetting<MembershipSettings>();
@@ -466,7 +459,8 @@ namespace Customer.Membership.Controllers
 
             var model = await _mediator.Send(new GetPaymentMethod
             {
-                Cart = new List<ShoppingCartItem>(), //Empty since not needed
+                // Not needed, can leave empty
+                Cart = new List<ShoppingCartItem>(),
                 Customer = customer,
                 Currency = currency,
                 Language = language,
@@ -477,7 +471,7 @@ namespace Customer.Membership.Controllers
             return model.PaymentMethods.ToList();
         }
 
-        //Helper function to get plan price
+        // Helper function to get plan role string
         private async Task<string> GetPlanRole(string selectedPlan)
         {
             var availablePlans = await LoadAvailablePlansAsync();
@@ -491,7 +485,7 @@ namespace Customer.Membership.Controllers
             return plan.Role;
         }
 
-        //Helper function to get plan price
+        // Helper function to get plan price
         private async Task<decimal> GetPlanAmount(string selectedPlan)
         {
             var availablePlans = await LoadAvailablePlansAsync();
@@ -505,6 +499,7 @@ namespace Customer.Membership.Controllers
             return plan.Price;
         }
 
+        // Helper function to generate a random Order number
         private int GenerateOrderNumber()
         {
             var ticks = DateTime.UtcNow.Ticks;

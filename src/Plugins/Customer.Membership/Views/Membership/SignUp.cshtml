@@ -88,15 +88,13 @@
                     // Add selected class to clicked card
                     this.classList.add('selected');
 
-                    // Find and check the radio button inside
                     const radio = this.querySelector('input[type="radio"]');
                     if (radio) {
                         radio.checked = true;
-                        console.log('Selected plan:', radio.value); // Debug log
+                        console.log('Selected plan:', radio.value);
                     }
                 });
 
-                // Initialize selected state if radio is checked
                 const radio = card.querySelector('input[type="radio"]');
                 if (radio && radio.checked) {
                     card.classList.add('selected');

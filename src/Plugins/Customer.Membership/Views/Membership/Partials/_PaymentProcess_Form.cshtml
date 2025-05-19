@@ -1,9 +1,9 @@
+@* Currently unsued due to only using stripe *@
 @model Customer.Membership.Models.PaymentProcessModel
 
 <div class="payment-form-container">
     <h3>Enter your payment details</h3>
 
-    @* Render dynamic payment view component here *@
     @if (!string.IsNullOrEmpty(Model.PaymentViewComponent))
     {
         @await Component.InvokeAsync(Model.PaymentViewComponent, Model.PaymentAdditionalData)
@@ -13,7 +13,6 @@
         <p>No payment UI available for this method.</p>
     }
 
-    @* Show errors if any *@
     @if (Model.Errors != null && Model.Errors.Any())
     {
         <div class="alert alert-danger">
