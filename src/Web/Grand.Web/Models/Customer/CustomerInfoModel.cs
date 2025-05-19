@@ -168,8 +168,6 @@ public class CustomerInfoModel : BaseModel
 
         return dateOfBirth;
     }
-    [GrandResourceDisplayName("Account.Fields.CurrentMembershipExpiration")]
-    public DateTime? CurrentMembershipExpiration { get; set; }
 
     #region Nested classes
 
