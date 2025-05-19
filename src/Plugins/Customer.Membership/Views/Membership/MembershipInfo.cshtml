@@ -1,0 +1,30 @@
+@model Customer.Membership.Domain.UserSubscription
+
+@{
+    ViewData["Title"] = "Your Membership Info";
+}
+
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Your Current Membership</h4>
+    </div>
+
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-4">Status</dt>
+            <dd class="col-sm-8">@Model.Status</dd>
+
+            <dt class="col-sm-4">Start Date</dt>
+            <dd class="col-sm-8">@Model.StartDate</dd>
+
+            <dt class="col-sm-4">Expiration Date</dt>
+            <dd class="col-sm-8">@Model.EndDate</dd>
+
+            <dt class="col-sm-4">Renewal Date</dt>
+            <dd class="col-sm-8">@Model.RenewalDate</dd>
+
+            <dt class="col-sm-4">Provider</dt>
+            <dd class="col-sm-8">@Model.Provider</dd>
+        </dl>
+    </div>
+</div>
