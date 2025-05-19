@@ -1,4 +1,5 @@
 using Grand.Data.Mongo;
+using Grand.Data;
 using Customer.Membership.Domain;
 using MongoDB.Driver;
 using System.Collections.Generic;
@@ -6,27 +7,23 @@ using System.Threading.Tasks;
 
 namespace Customer.Membership.Data
 {
-    public class UserSubscriptionRepository : IUserSubscriptionRepository
+    public class UserSubscriptionRepository : MongoRepository<UserSubscription>, IUserSubscriptionRepository
     {
-        private readonly MongoRepository<UserSubscription> _repository;
-
-        public UserSubscriptionRepository(MongoRepository<UserSubscription> repository)
+        public UserSubscriptionRepository(IAuditInfoProvider auditInfoProvider)
+            : base(auditInfoProvider)
         {
-            _repository = repository;
         }
 
         public async Task<UserSubscription> GetByUserIdAsync(string userId)
         {
-            return await _repository
-                .Collection
-                .Find(x => x.CustomerId == userId && x.IsActive)
+            return await Collection
+                .Find(x => x.UserId == userId && x.IsActive)
                 .FirstOrDefaultAsync();
         }
 
         public async Task<List<UserSubscription>> GetActiveSubscriptionsAsync()
         {
-            return await _repository
-                .Collection
+            return await Collection
                 .Find(x => x.IsActive)
                 .ToListAsync();
         }

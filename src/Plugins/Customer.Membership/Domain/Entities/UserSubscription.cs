@@ -8,7 +8,7 @@ namespace Customer.Membership.Domain
 {
     public class UserSubscription : BaseEntity
     {
-        public string userId { get; set; }
+        public string UserId { get; set; }
         public string PlanId { get; set; }
 
         public string Provider { get; set; } // Stripe, PayPal, etc.
