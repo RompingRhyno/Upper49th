@@ -118,7 +118,7 @@ public class StripeCheckoutService : IStripeCheckoutService
                 Metadata = new Dictionary<string, string> { { "order_guid", order.OrderGuid.ToString() } }
             },
             Mode = "payment",
-            SuccessUrl = $"{storeLocation}/membership/paymentsuccess?orderId={order.Id}"
+            SuccessUrl = $"{storeLocation}/membership/paymentsuccess?orderId={order.Id}",
             CancelUrl = $"{storeLocation}/membership/paymentcancel?orderId={order.Id}"
         };
         var service = new SessionService();

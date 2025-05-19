@@ -32,17 +32,33 @@ public class AdminMembershipController : BasePluginController
         var settings = await _settingService.LoadSetting<MembershipSettings>();
 
         var allRoles = await _groupService.GetAllCustomerGroups(showHidden: true);
-        var configuredRoles = settings.Plans?.Select(p => p.Role) ?? new List<string>();
+        var allRoleNames = allRoles.Select(g => g.Name).ToList();
 
-        Console.WriteLine("Configured roles " + (configuredRoles.FirstOrDefault()));
+        var settingPlans = settings.Plans ?? new List<MembershipPlan>();
+        var removedPlans = settingPlans
+        .Where(p => !allRoleNames.Contains(p.Role))
+        .ToList();
+        if (removedPlans.Any())
+        {
+            foreach (var removed in removedPlans)
+            {
+                Console.WriteLine($"Removing non-existent role: {removed.Role}");
+                settingPlans.Remove(removed);
+            }
 
+            // Save the cleaned settings
+            settings.Plans = settingPlans;
+            await _settingService.SaveSetting(settings);
+        }
+
+
+        var configuredRoles = settingPlans.Select(p => p.Role);
         var availableRoles = allRoles
         .Where(g => !configuredRoles.Contains(g.Name))
         .Select(g => g.Name)
         .Where(g => g.Contains("Member"))
         .ToList();
 
-        var settingPlans = settings.Plans;
         if (settingPlans.Any())
         {
             Console.WriteLine("SettingPlans roles " + (settingPlans.FirstOrDefault().Role));
