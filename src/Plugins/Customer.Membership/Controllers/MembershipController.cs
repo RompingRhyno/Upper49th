@@ -298,6 +298,8 @@ namespace Customer.Membership.Controllers
                     if (paymentMethod.PaymentMethodType == PaymentMethodType.Redirection)
                     {
 
+                        var billingAddress = _workContext.CurrentCustomer.BillingAddress;
+
                         var newOrder = new Order
                         {
                             OrderNumber = GenerateOrderNumber(),
@@ -306,8 +308,24 @@ namespace Customer.Membership.Controllers
                             CustomerEmail = _workContext.CurrentCustomer.Email,
                             OrderGuid = Guid.NewGuid(),
                             CustomerId = _workContext.CurrentCustomer.Id,
-                            CreatedOnUtc = DateTime.UtcNow
+                            CreatedOnUtc = DateTime.UtcNow,
+                            Code = await GenerateUniqueOrdeCodeAsync(),
+                            StoreId = _storeContext.CurrentStore.Id,
+                            OwnerId = _workContext.CurrentCustomer.Id,
+                            OrderStatusId = 10,
+                            PaymentStatusId = PaymentStatus.Pending,
+                            PaymentMethodSystemName = "Payment.StripeCheckout",
+                            CurrencyRate = _workContext.WorkingCurrency.Rate,
+                            Rate = _workContext.WorkingCurrency.Rate,
+                            FirstName = billingAddress.FirstName,
+                            LastName = billingAddress.LastName,
+                            CustomerLanguageId = "6819c17e9d1830d534732d04",
+                            BillingAddress = billingAddress
+
                         };
+
+                        _logger.LogWarning("Email", newOrder.CustomerEmail);
+
 
                         newOrder.OrderTags.Add(model.SelectedPlan);
 
@@ -321,8 +339,11 @@ namespace Customer.Membership.Controllers
                             PaymentMethodSystemName = paymentMethodSystemName,
                             TransactionAmount = (double)(await GetPlanAmount(model.SelectedPlan)),
                             CurrencyCode = _workContext.WorkingCurrency.CurrencyCode,
-                            TransactionStatus = TransactionStatus.Pending
-
+                            TransactionStatus = TransactionStatus.Pending,
+                            OrderGuid = newOrder.OrderGuid,
+                            OrderCode = newOrder.Code,
+                            CustomerEmail = newOrder.CustomerEmail,
+                            CurrencyRate = _workContext.WorkingCurrency.Rate
                         };
 
                         await _paymentTransactionService.InsertPaymentTransaction(paymentTransaction);
@@ -524,6 +545,22 @@ namespace Customer.Membership.Controllers
         {
             var ticks = DateTime.UtcNow.Ticks;
             return (int)(ticks % int.MaxValue);
+        }
+
+        private async Task<string> GenerateUniqueOrdeCodeAsync()
+        {
+            const int length = 8;
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            var random = new Random();
+            string code;
+            do
+            {
+                code = new string(Enumerable.Repeat(chars, length)
+           .Select(s => s[random.Next(s.Length)]).ToArray());
+            }
+            while ((await _orderService.GetOrdersByCode(code)).Any());
+
+            return code;
         }
     }
 }
