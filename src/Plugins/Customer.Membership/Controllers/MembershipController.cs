@@ -15,6 +15,7 @@ using Grand.Business.Customers.Services;
 using Customer.Membership.Models;
 using Grand.Business.Core.Interfaces.Common.Configuration;
 using Customer.Membership.Domain.Settings;
+using Customer.Membership.Domain;
 using Grand.Web.Models.Checkout;
 using PaymentMethodModel = Grand.Web.Models.Checkout.CheckoutPaymentMethodModel.PaymentMethodModel;
 using MediatR;
@@ -402,6 +403,25 @@ namespace Customer.Membership.Controllers
             };
 
             return View("PaymentCancel", model);
+        }
+
+
+        [HttpGet("membershipinfo")]
+        public async Task<IActionResult> MembershipInfo()
+        {
+            var model = new UserSubscription()
+            {
+                UserId = "abc123",
+                PlanId = "premium-plan",
+                Provider = "Stripe",
+                ProviderCustomerId = "cus_789",
+                ProviderSubscriptionId = "sub_456",
+                StartDate = DateTime.UtcNow,
+                EndDate = DateTime.UtcNow.AddMonths(1),
+                RenewalDate = DateTime.UtcNow.AddMonths(1),
+                IsActive = true
+            };
+            return View("MembershipInfo", model);
         }
 
 

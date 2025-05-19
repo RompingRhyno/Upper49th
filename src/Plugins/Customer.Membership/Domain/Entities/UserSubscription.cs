@@ -15,7 +15,7 @@ namespace Customer.Membership.Domain
         public string ProviderCustomerId { get; set; }
         public string ProviderSubscriptionId { get; set; }
 
-        public DateTime StartDate { get; set; }
+        public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public DateTime? RenewalDate { get; set; }
 
