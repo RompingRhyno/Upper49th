@@ -16,6 +16,7 @@ using Customer.Membership.Models;
 using Grand.Business.Core.Interfaces.Common.Configuration;
 using Customer.Membership.Domain.Settings;
 using Customer.Membership.Domain;
+using Customer.Membership.Data;
 using Grand.Web.Models.Checkout;
 using PaymentMethodModel = Grand.Web.Models.Checkout.CheckoutPaymentMethodModel.PaymentMethodModel;
 using MediatR;
@@ -53,6 +54,7 @@ namespace Customer.Membership.Controllers
         private readonly ICountryService _countryService;
         private readonly IPaymentTransactionService _paymentTransactionService;
         private readonly IStripeCheckoutService _stripeCheckoutService;
+        private readonly IUserSubscriptionRepository _userSubscriptionRepository;
 
 
 
@@ -70,7 +72,8 @@ namespace Customer.Membership.Controllers
             OrderSettings orderSettings,
             ICountryService countryService,
             IPaymentTransactionService paymentTransactionService,
-            IStripeCheckoutService stripeCheckoutService)
+            IStripeCheckoutService stripeCheckoutService,
+            IUserSubscriptionRepository userSubscriptionRepository)
         {
             _logger = logger;
             _workContext = contextAccessor.WorkContext;
@@ -86,6 +89,7 @@ namespace Customer.Membership.Controllers
             _countryService = countryService;
             _paymentTransactionService = paymentTransactionService;
             _stripeCheckoutService = stripeCheckoutService;
+            _userSubscriptionRepository = userSubscriptionRepository;
         }
 
         [HttpGet("", Name = "MembershipIndex")]
@@ -409,20 +413,30 @@ namespace Customer.Membership.Controllers
         [HttpGet("membershipinfo")]
         public async Task<IActionResult> MembershipInfo()
         {
-            var model = new UserSubscription()
+            var currentCust = _workContext.CurrentCustomer;
+            var currUserSubscription = await _userSubscriptionRepository.GetByUserIdAsync(currentCust.Id);
+
+            if (currUserSubscription == null)
+                return View("MembershipInfo", new UserSubscription());
+
+            var model = new UserSubscription
             {
-                UserId = "abc123",
-                PlanId = "premium-plan",
-                Provider = "Stripe",
-                ProviderCustomerId = "cus_789",
-                ProviderSubscriptionId = "sub_456",
-                StartDate = DateTime.UtcNow,
-                EndDate = DateTime.UtcNow.AddMonths(1),
-                RenewalDate = DateTime.UtcNow.AddMonths(1),
-                IsActive = true
+                Id = currUserSubscription.Id,
+                UserId = currUserSubscription.UserId,
+                PlanId = currUserSubscription.PlanId,
+                Provider = currUserSubscription.Provider,
+                ProviderCustomerId = currUserSubscription.ProviderCustomerId,
+                ProviderSubscriptionId = currUserSubscription.ProviderSubscriptionId,
+                StartDate = currUserSubscription.StartDate,
+                EndDate = currUserSubscription.EndDate,
+                RenewalDate = currUserSubscription.RenewalDate,
+                Status = currUserSubscription.Status,
+                IsActive = currUserSubscription.IsActive
             };
+
             return View("MembershipInfo", model);
         }
+
 
 
         // Helper function region
