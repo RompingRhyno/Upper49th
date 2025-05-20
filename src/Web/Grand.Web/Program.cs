@@ -8,18 +8,6 @@ var builder = WebApplication.CreateBuilder(args);
 //add configuration
 builder.Configuration.AddAppSettingsJsonFile(args);
 
-//add CORS policy
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowSpecificOrigins", builder =>
-    {
-        builder.WithOrigins("http://localhost:5050", "https://upper49th.fly.dev")
-               .AllowAnyHeader()
-               .AllowAnyMethod()
-               .AllowCredentials();
-    });
-});
-
 builder.AddServiceDefaults();
 
 builder.Host.UseDefaultServiceProvider((_, options) =>
@@ -42,8 +30,23 @@ builder.Services.AddScoped<RequireRegisteredCustomerFilter>();
 //build app
 var app = builder.Build();
 
-//use CORS policy
-app.UseCors("AllowSpecificOrigins");
+app.Use(async (context, next) =>
+{
+    var host = context.Request.Host.Host;
+
+    if (host.StartsWith("www.", StringComparison.OrdinalIgnoreCase))
+    {
+        // Remove "www." prefix to redirect to root domain
+        var nonWwwHost = host.Substring(4);
+
+        var newUrl = $"{context.Request.Scheme}://{nonWwwHost}{context.Request.Path}{context.Request.QueryString}";
+        context.Response.StatusCode = 301; // Permanent redirect
+        context.Response.Headers.Location = newUrl;
+        return;
+    }
+
+    await next();
+});
 
 //request pipeline
 StartupBase.ConfigureRequestPipeline(app, builder.Environment);

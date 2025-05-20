@@ -169,7 +169,6 @@ public class CustomerInfoModel : BaseModel
         return dateOfBirth;
     }
 
-
     #region Nested classes
 
     public class AssociatedExternalAuthModel : BaseEntityModel

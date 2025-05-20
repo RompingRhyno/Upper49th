@@ -42,6 +42,10 @@
 	</Target>
 
 	<ItemGroup>
+		<Content Remove="wwwroot\Plugins\Customer.Membership\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<Content Remove="Plugins\**" />
 		<Compile Remove="Plugins\**" />
 		<EmbeddedResource Remove="Plugins\**" />
