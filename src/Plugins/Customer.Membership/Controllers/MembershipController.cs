@@ -34,6 +34,7 @@ using Grand.Web.Models.Common;
 using Grand.Domain.Directory;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Payments.StripeCheckout.Services;
+using Grand.Web.Common.Security.Authorization;
 
 namespace Customer.Membership.Controllers
 {
@@ -430,7 +431,7 @@ namespace Customer.Membership.Controllers
             return View("PaymentCancel", model);
         }
 
-
+        [CustomerGroupAuthorize(SystemCustomerGroupNames.Registered)]
         [HttpGet("membershipinfo")]
         public async Task<IActionResult> MembershipInfo()
         {
