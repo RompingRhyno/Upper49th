@@ -16,7 +16,7 @@ namespace Customer.Membership.Models
     public class MembershipWizardModel
     {
         public int CurrentStep { get; set; } = 1;
-        public string SelectedPlan { get; set; } = "";
+        public string SelectedPlan { get; set; } = null;
     }
 
     // Step 1 Model

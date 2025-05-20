@@ -1,7 +1,13 @@
-<div>
-    Memberships
-    <img src="/Plugins/Customer.Membership/images/Upper49thMembershipIndex.png" alt="Membership Image" />
+<div class="mb-5 index-container">
+    <img src="/Plugins/Customer.Membership/images/Upper49thMembershipIndex.png" alt="Membership Image"
+        class="responsive-img" />
+
     <form asp-controller="Membership" asp-action="SignUp" method="get">
-        <button type="submit" class="btn btn-primary">Sign Up Now</button>
+        <button type="submit" class="btn btn-primary mt-5">Sign Up Now</button>
     </form>
 </div>
+
+
+@section Styles {
+    <link rel="stylesheet" href="~/plugins/Customer.Membership/css/membership.css" />
+}

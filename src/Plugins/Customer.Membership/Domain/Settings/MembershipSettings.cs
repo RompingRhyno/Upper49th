@@ -13,6 +13,7 @@ namespace Customer.Membership.Domain.Settings
         public string Role { get; set; }
         public decimal Price { get; set; }
         public string SystemName { get; set; }
+        public string Description { get; set; }
     }
     public class MembershipSettings : ISettings
     {

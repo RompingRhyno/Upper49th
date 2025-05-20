@@ -1,11 +1,14 @@
 @model Customer.Membership.Models.OrderViewModel
 
-<h2>Payment Cancelled</h2>
-<p>Your payment was not completed. If this was a mistake, you can try again.</p>
 
-<ul>
-    <li><strong>Order Number:</strong> @Model.OrderNumber</li>
-    <li><strong>Total:</strong> @Model.Total @Model.Currency</li>
-</ul>
+<div class="mb-5">
+    <h2>Payment Cancelled</h2>
+    <p>Your payment was not completed. If this was a mistake, you can try again.</p>
 
-<a href="/">Back to Home</a>
+    <ul>
+        <li><strong>Order Number:</strong> @Model.OrderNumber</li>
+        <li><strong>Total:</strong> @Model.Total @Model.Currency</li>
+    </ul>
+
+    <a href="/">Back to Home</a>
+</div>

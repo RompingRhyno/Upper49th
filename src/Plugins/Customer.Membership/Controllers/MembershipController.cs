@@ -94,14 +94,31 @@ namespace Customer.Membership.Controllers
         }
 
         [HttpGet("", Name = "MembershipIndex")]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            if (await hasMemberRole())
+            {
+                return RedirectToAction("MembershipInfo");
+            }
+            else if (!(await _groupService.IsRegistered(_workContext.CurrentCustomer)))
+            {
+                return RedirectToRoute("Login");
+            }
             return View("~/Views/Membership/Index.cshtml");
         }
 
         [HttpGet("signup")]
         public async Task<IActionResult> SignUp()
         {
+            if (await hasMemberRole())
+            {
+                return RedirectToAction("MembershipInfo");
+            }
+            else if (!(await _groupService.IsRegistered(_workContext.CurrentCustomer)))
+            {
+                return RedirectToRoute("Login");
+            }
+
             await _customerService.ResetCheckoutData(_workContext.CurrentCustomer, _storeContext.CurrentStore.Id);
 
             var model = new PlanSelectionModel
@@ -116,6 +133,15 @@ namespace Customer.Membership.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SignUp(MembershipWizardModel model, string navigation)
         {
+            if (await hasMemberRole())
+            {
+                return RedirectToAction("MembershipInfo");
+            }
+            else if (!(await _groupService.IsRegistered(_workContext.CurrentCustomer)))
+            {
+                return RedirectToRoute("Login");
+            }
+
             // Back navigation
             if (navigation == "back")
             {
@@ -176,7 +202,7 @@ namespace Customer.Membership.Controllers
                     return View("~/Views/Membership/SignUp.cshtml", planModel);
                 }
 
-                //Move to step 2
+                // Move to step 2
                 var billingModel = new BillingAddressModel
                 {
                     CurrentStep = 2,
@@ -228,8 +254,6 @@ namespace Customer.Membership.Controllers
 
                     return View("~/Views/Membership/SignUp.cshtml", billingModel);
                 }
-
-                // TODO: Add validation to make sure all fields are filled out before proceeding and modifying database with blanks
 
                 var addressModel = billingModel.BillingAddress;
                 var address = new Address
@@ -329,9 +353,6 @@ namespace Customer.Membership.Controllers
 
                         };
 
-                        _logger.LogWarning("Email", newOrder.CustomerEmail);
-
-
                         newOrder.OrderTags.Add(model.SelectedPlan);
 
                         await _orderService.InsertOrder(newOrder);
@@ -354,7 +375,7 @@ namespace Customer.Membership.Controllers
                         await _paymentTransactionService.InsertPaymentTransaction(paymentTransaction);
 
                         // Get redirect url
-                        var redirectUrl = await _stripeCheckoutService.CreateRedirectUrl(newOrder);
+                        var redirectUrl = await _stripeCheckoutService.CreateRedirectUrl(newOrder, "membership");
                         _logger.LogWarning(redirectUrl);
 
                         if (!string.IsNullOrEmpty(redirectUrl))
@@ -364,13 +385,6 @@ namespace Customer.Membership.Controllers
                         // For non-redirect methods, get the view component name (CURRENTLY UNUSED)
                         else
                         {
-                            // paymentProcessModel.PaymentViewComponent = "PaymentBrainTree"; //paymentMethod.GetPublicViewComponentName();
-
-                            // paymentProcessModel.PaymentAdditionalData = new Dictionary<string, string>
-                            // {
-                            //     { "amount", (await GetPlanAmount(model.SelectedPlan)).ToString() },
-                            //     { "currency", _workContext.WorkingCurrency.CurrencyCode }
-                            // };
                         }
                         return View("~/Views/Membership/SignUp.cshtml", paymentProcessModel);
                     }
@@ -382,6 +396,11 @@ namespace Customer.Membership.Controllers
         [HttpGet("paymentsuccess")]
         public async Task<IActionResult> PaymentSuccess(string orderId)
         {
+            if (!(await _groupService.IsRegistered(_workContext.CurrentCustomer)))
+            {
+                return RedirectToRoute("Login");
+            }
+
             if (string.IsNullOrEmpty(orderId))
                 return BadRequest("Missing order ID.");
 
@@ -410,6 +429,11 @@ namespace Customer.Membership.Controllers
         [HttpGet("paymentcancel")]
         public async Task<IActionResult> PaymentCancel(string orderId)
         {
+            if (!(await _groupService.IsRegistered(_workContext.CurrentCustomer)))
+            {
+                return RedirectToRoute("Login");
+            }
+
             if (string.IsNullOrEmpty(orderId))
                 return BadRequest("Missing order ID.");
 
@@ -488,11 +512,12 @@ namespace Customer.Membership.Controllers
         private async Task<List<MembershipPlan>> LoadAvailablePlansAsync()
         {
             var settings = await _settingService.LoadSetting<MembershipSettings>();
-            return settings.Plans.Select(p => new MembershipPlan
+            return settings.Plans.OrderBy(p => p.Price).Select(p => new MembershipPlan
             {
                 Role = p.Role,
                 Price = p.Price,
-                SystemName = p.SystemName
+                SystemName = p.SystemName,
+                Description = p.Description
             }).ToList();
         }
 
@@ -523,7 +548,10 @@ namespace Customer.Membership.Controllers
                 FilterByCountryId = filterByCountryId
             });
 
-            return model.PaymentMethods.ToList();
+            // Filter for stripe only currently, other payment methods are not working
+            // return model.PaymentMethods.ToList();
+
+            return model.PaymentMethods.Where(p => p.PaymentMethodSystemName.Equals("Payments.StripeCheckout")).ToList();
         }
 
         // Helper function to get plan role string
@@ -561,6 +589,7 @@ namespace Customer.Membership.Controllers
             return (int)(ticks % int.MaxValue);
         }
 
+        // Helper function to generate a random unique order code
         private async Task<string> GenerateUniqueOrdeCodeAsync()
         {
             const int length = 8;
@@ -575,6 +604,24 @@ namespace Customer.Membership.Controllers
             while ((await _orderService.GetOrdersByCode(code)).Any());
 
             return code;
+        }
+
+        // Helper function to check if customer has any membership role
+        private async Task<bool> hasMemberRole()
+        {
+            // Get all current customer's groups
+            var groupIds = _workContext.CurrentCustomer.Groups.ToList().ToArray();
+            var groups = await _groupService.GetAllByIds(groupIds);
+
+            var availablePlans = await LoadAvailablePlansAsync();
+
+            var groupSystemNames = groups.Select(g => g.SystemName);
+            var planSystemNames = availablePlans.Select(p => p.SystemName);
+
+            var hasCommonSystemName = groupSystemNames.Intersect(planSystemNames).Any();
+
+            return hasCommonSystemName;
+
         }
     }
 }

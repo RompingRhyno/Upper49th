@@ -73,12 +73,12 @@ public class AdminMembershipController : BasePluginController
     }
 
     [HttpPost]
-    public async Task<IActionResult> Configure(SettingsModel model, string newRole, string newPrice, List<string> RolesToDelete)
+    public async Task<IActionResult> Configure(SettingsModel model, string newRole, string newPrice, string newDescription, List<string> RolesToDelete)
     {
 
         var settings = await _settingService.LoadSetting<MembershipSettings>();
 
-        var updatedPlans = settings.Plans?.ToList() ?? new List<MembershipPlan>();
+        var updatedPlans = model.Plans ?? new List<MembershipPlan>();
 
         if (RolesToDelete != null && RolesToDelete.Any())
         {
@@ -100,7 +100,8 @@ public class AdminMembershipController : BasePluginController
             {
                 Role = newRole,
                 SystemName = matchingGroup.SystemName,
-                Price = price
+                Price = price,
+                Description = newDescription
             });
             Console.WriteLine("New role SystemName" + matchingGroup.SystemName);
         }
