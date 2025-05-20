@@ -29,7 +29,7 @@ namespace Customer.Membership.Models
     // Step 2 Model
     public class BillingAddressModel : MembershipWizardModel
     {
-        public AddressModel BillingAddress { get; set; } = new();
+        public MembershipBillingAddressModel BillingAddress { get; set; } = new();
     }
 
     // Step 3 Model

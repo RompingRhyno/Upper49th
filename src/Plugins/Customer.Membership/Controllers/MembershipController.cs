@@ -137,7 +137,7 @@ namespace Customer.Membership.Controllers
                     {
                         CurrentStep = 2,
                         SelectedPlan = model.SelectedPlan,
-                        BillingAddress = GetCustomerBillingAddressModel()
+                        BillingAddress = GetCustomerMembershipBillingAddressModel()
                     };
 
                     billingModel.BillingAddress.AvailableCountries = (await _countryService.GetAllCountries()).Select(c => new SelectListItem
@@ -180,7 +180,7 @@ namespace Customer.Membership.Controllers
                 {
                     CurrentStep = 2,
                     SelectedPlan = planModel.SelectedPlan,
-                    BillingAddress = GetCustomerBillingAddressModel(),
+                    BillingAddress = GetCustomerMembershipBillingAddressModel(),
                 };
 
                 billingModel.BillingAddress.AvailableCountries = (await _countryService.GetAllCountries()).Select(c => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
@@ -461,15 +461,15 @@ namespace Customer.Membership.Controllers
 
 
         // Helper function region
-        // Get customer's existing billing address
-        private AddressModel GetCustomerBillingAddressModel()
+        // Get customer's existing billing address mapped to MembershipBillingAddressModel
+        private MembershipBillingAddressModel GetCustomerMembershipBillingAddressModel()
         {
             var billingAddress = _workContext.CurrentCustomer.BillingAddress;
 
             if (billingAddress == null)
-                return new AddressModel();
+                return new MembershipBillingAddressModel();
 
-            return new AddressModel
+            return new MembershipBillingAddressModel
             {
                 FirstName = billingAddress.FirstName,
                 LastName = billingAddress.LastName,
@@ -478,7 +478,6 @@ namespace Customer.Membership.Controllers
                 StateProvinceId = billingAddress.StateProvinceId,
                 City = billingAddress.City,
                 Address1 = billingAddress.Address1,
-                Address2 = billingAddress.Address2,
                 ZipPostalCode = billingAddress.ZipPostalCode,
                 PhoneNumber = billingAddress.PhoneNumber
             };
