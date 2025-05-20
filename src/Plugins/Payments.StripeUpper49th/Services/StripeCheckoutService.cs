@@ -70,7 +70,7 @@ public class StripeCheckoutService : IStripeCheckoutService
                     await CreatePaymentTransaction(paymentIntent);
                     return true;
 
-                case Events.CheckoutSessionCompleted:
+                case Events.InvoicePaid:
                     var session = stripeEvent.Data.Object as Session;
 
                     if (session.Mode == "subscription" && !string.IsNullOrEmpty(session.Subscription))
@@ -78,7 +78,7 @@ public class StripeCheckoutService : IStripeCheckoutService
                         _logger.LogInformation("Subscription session completed: {SessionId}, Customer: {CustomerId}, Subscription: {SubscriptionId}",
                             session.Id, session.CustomerId, session.Subscription);
 
-                        await SaveSubscriptionDetails(session);
+                        // TODO: await SaveSubscriptionDetails(session);
 
                         // e.g., assign roles, send emails here if needed
                     }
