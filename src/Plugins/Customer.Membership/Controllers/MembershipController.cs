@@ -393,13 +393,10 @@ namespace Customer.Membership.Controllers
             return View("~/Views/Membership/Index.cshtml");
         }
 
+        [CustomerGroupAuthorize(SystemCustomerGroupNames.Registered)]
         [HttpGet("paymentsuccess")]
         public async Task<IActionResult> PaymentSuccess(string orderId)
         {
-            if (!(await _groupService.IsRegistered(_workContext.CurrentCustomer)))
-            {
-                return RedirectToRoute("Login");
-            }
 
             if (string.IsNullOrEmpty(orderId))
                 return BadRequest("Missing order ID.");
@@ -426,14 +423,10 @@ namespace Customer.Membership.Controllers
             return View("PaymentSuccess", model);
         }
 
+        [CustomerGroupAuthorize(SystemCustomerGroupNames.Registered)]
         [HttpGet("paymentcancel")]
         public async Task<IActionResult> PaymentCancel(string orderId)
         {
-            if (!(await _groupService.IsRegistered(_workContext.CurrentCustomer)))
-            {
-                return RedirectToRoute("Login");
-            }
-
             if (string.IsNullOrEmpty(orderId))
                 return BadRequest("Missing order ID.");
 
