@@ -6,12 +6,10 @@ namespace Plugins.Theme.Upper49th.Services
     public class MenuVisibilityService
     {
         private readonly IConfiguration _configuration;
-        private readonly ILogger<MenuVisibilityService> _logger;
 
-        public MenuVisibilityService(IConfiguration configuration, ILogger<MenuVisibilityService> logger)
+        public MenuVisibilityService(IConfiguration configuration)
         {
             _configuration = configuration;
-            _logger = logger;
         }
 
         public bool ShouldShowMembershipMenu()
