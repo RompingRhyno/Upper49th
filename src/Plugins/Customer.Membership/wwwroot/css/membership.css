@@ -1,15 +1,14 @@
 /* Card container styling */
 .membership-plan-card {
     display: block;
-    border: 1px solid #dee2e6; /* Visible border */
-    border-radius: 0.25rem;
+    height: 100%;
+    border: 1px solid #ccc;
+    border-radius: 0.5rem;
     padding: 1rem;
-    margin-bottom: 1rem;
+    text-align: center;
+    transition: border-color 0.3s ease;
     cursor: pointer;
-    transition: all 0.3s ease;
-    background: white;
 }
-
 /* Hover state */
 .membership-plan-card:hover {
     border-color: #007bff;
@@ -61,4 +60,12 @@
 
 .progress-bar {
     transition: width 0.3s ease;
+}
+
+.card-text {
+    text-align: center;
+}
+
+.card-body {
+    text-align: center;
 }

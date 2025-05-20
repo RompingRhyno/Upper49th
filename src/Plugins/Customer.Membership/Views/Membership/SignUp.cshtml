@@ -9,10 +9,8 @@
     var paymentProcessModel = Model as PaymentProcessModel;
 }
 
-<div class="membership-signup-container">
+<div class="membership-signup-container mb-5">
     <h2 class="text-center mb-4">Sign Up for a Membership</h2>
-
-    <div asp-validation-summary="All" class="text-danger"></div>
 
     <div class="progress mb-4">
         <div class="progress-bar" role="progressbar" style="width: @(Model.CurrentStep * 25.00)%"
