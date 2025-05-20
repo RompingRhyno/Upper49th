@@ -378,6 +378,10 @@ namespace Customer.Membership.Controllers
                         var redirectUrl = await _stripeCheckoutService.CreateRedirectUrl(newOrder, "membership");
                         _logger.LogWarning(redirectUrl);
 
+                        // // New using stripe upper49th
+                        // var stripeSession = await CreateSubscriptionSession(newOrder);
+                        // var redirectUrl = session.Url;
+
                         if (!string.IsNullOrEmpty(redirectUrl))
                         {
                             paymentProcessModel.RedirectUrl = redirectUrl;
@@ -394,12 +398,9 @@ namespace Customer.Membership.Controllers
         }
 
         [HttpGet("paymentsuccess")]
+        [CustomerGroupAuthorize(SystemCustomerGroupNames.Registered)]
         public async Task<IActionResult> PaymentSuccess(string orderId)
         {
-            if (!(await _groupService.IsRegistered(_workContext.CurrentCustomer)))
-            {
-                return RedirectToRoute("Login");
-            }
 
             if (string.IsNullOrEmpty(orderId))
                 return BadRequest("Missing order ID.");
@@ -427,12 +428,9 @@ namespace Customer.Membership.Controllers
         }
 
         [HttpGet("paymentcancel")]
+        [CustomerGroupAuthorize(SystemCustomerGroupNames.Registered)]
         public async Task<IActionResult> PaymentCancel(string orderId)
         {
-            if (!(await _groupService.IsRegistered(_workContext.CurrentCustomer)))
-            {
-                return RedirectToRoute("Login");
-            }
 
             if (string.IsNullOrEmpty(orderId))
                 return BadRequest("Missing order ID.");
@@ -623,5 +621,39 @@ namespace Customer.Membership.Controllers
             return hasCommonSystemName;
 
         }
+
+        // Helper function to store data with
+        private async Task SaveSubscriptionDetails(Session session, Order order)
+        {
+            if (session.Customer is string stripeCustomerId && session.ClientReferenceId is string userId)
+            {
+                var subscriptionId = session.Subscription;
+
+                var existing = await _userSubscriptionRepository.GetByUserIdAsync(userId);
+                if (existing != null)
+                {
+                    existing.ProviderCustomerId = stripeCustomerId;
+                    existing.SubscriptionId = subscriptionId;
+                    await _userSubscriptionRepository.UpdateAsync(existing);
+                }
+                else
+                {
+                    var newSubscription = new Domain.UserSubscription
+                    {
+                        UserId = userId,
+                        PlanId = order.OrderTags?.FirstOrDefault() ?? string.Empty,
+                        Provider = order.PaymentMethodSystemName,
+                        ProviderCustomerId = stripeCustomerId,
+                        ProviderSubscriptionId = subscriptionId,
+                        StartDate = DateTime.UtcNow,
+                        EndDate = DateTime.UtcNow.AddDays(30),
+                        RenewalDate = DateTime.UtcNow.AddDays(30),
+                        Status = SubscriptionStatus.Active,
+                    };
+                    await _userSubscriptionRepository.InsertAsync(newSubscription);
+                }
+            }
+        }
+
     }
 }
