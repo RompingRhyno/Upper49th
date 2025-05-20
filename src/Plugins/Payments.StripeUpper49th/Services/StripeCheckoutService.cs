@@ -6,6 +6,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using Stripe;
 using Stripe.Checkout;
+using Customer.Membership.Data;
 
 namespace Payments.StripeUpper49th.Services;
 
@@ -16,24 +17,33 @@ public class StripeCheckoutService : IStripeCheckoutService
     private readonly IPaymentTransactionService _paymentTransactionService;
     private readonly StripeCheckoutPaymentSettings _stripeCheckoutPaymentSettings;
     private readonly IContextAccessor _contextAccessor;
+    private readonly IUserSubscriptionRepository _userSubscriptionRepository;
 
     public StripeCheckoutService(
         IContextAccessor contextAccessor,
         StripeCheckoutPaymentSettings stripeCheckoutPaymentSettings,
         ILogger<StripeCheckoutService> logger,
         IMediator mediator,
-        IPaymentTransactionService paymentTransactionService)
+        IPaymentTransactionService paymentTransactionService,
+        IUserSubscriptionRepository userSubscriptionRepository)
     {
         _contextAccessor = contextAccessor;
         _stripeCheckoutPaymentSettings = stripeCheckoutPaymentSettings;
         _logger = logger;
         _mediator = mediator;
         _paymentTransactionService = paymentTransactionService;
+        _userSubscriptionRepository = userSubscriptionRepository;
     }
 
     public async Task<string> CreateRedirectUrl(Order order)
     {
         var session = await CreateUrlSession(order);
+        return session.Url;
+    }
+
+    public async Task<string> CreateSubscriptionRedirectUrl(Order order)
+    {
+        var session = await CreateSubscriptionSession(order);
         return session.Url;
     }
 
@@ -68,10 +78,9 @@ public class StripeCheckoutService : IStripeCheckoutService
                         _logger.LogInformation("Subscription session completed: {SessionId}, Customer: {CustomerId}, Subscription: {SubscriptionId}",
                             session.Id, session.CustomerId, session.Subscription);
 
-                        // store Stripe Customer ID and Subscription ID
                         await SaveSubscriptionDetails(session);
 
-                        // assign role, send welcome email, etc.
+                        // e.g., assign roles, send emails here if needed
                     }
                     return true;
             }
@@ -147,11 +156,46 @@ public class StripeCheckoutService : IStripeCheckoutService
             CancelUrl = $"{storeLocation}/Plugins/PaymentStripeCheckout/CancelOrder/{order.Id}"
         };
         var service = new SessionService();
-        var session = await service.CreateAsync(options);
-
-        return session;
+        return await service.CreateAsync(options);
     }
-    
+
+    private async Task<Session> CreateSubscriptionSession(Order order)
+    {
+        StripeConfiguration.ApiKey = _stripeCheckoutPaymentSettings.ApiKey;
+
+        var storeLocation = _contextAccessor.StoreContext.CurrentHost.Url.TrimEnd('/');
+
+        var userSubscription = await _userSubscriptionRepository.GetByUserIdAsync(order.CustomerId);
+        var stripeCustomerId = userSubscription?.ProviderCustomerId;
+
+        var options = new SessionCreateOptions
+        {
+            LineItems = new List<SessionLineItemOptions>
+            {
+                new SessionLineItemOptions
+                {
+                    Price = _stripeCheckoutPaymentSettings.MembershipPriceId,
+                    Quantity = 1
+                }
+            },
+            Mode = "subscription",
+            SuccessUrl = $"{storeLocation}/Plugins/PaymentStripeCheckout/SubscriptionSuccess",
+            CancelUrl = $"{storeLocation}/Plugins/PaymentStripeCheckout/SubscriptionCancel"
+        };
+
+        if (!string.IsNullOrEmpty(stripeCustomerId))
+        {
+            options.Customer = stripeCustomerId;
+        }
+        else
+        {
+            options.CustomerEmail = order.CustomerEmail;
+        }
+
+        var service = new SessionService();
+        return await service.CreateAsync(options);
+    }
+
     private async Task<Session> CreateSubscriptionSession(string userEmail, string priceId)
     {
         StripeConfiguration.ApiKey = _stripeCheckoutPaymentSettings.ApiKey;
@@ -177,5 +221,4 @@ public class StripeCheckoutService : IStripeCheckoutService
         var service = new SessionService();
         return await service.CreateAsync(options);
     }
-
 }
