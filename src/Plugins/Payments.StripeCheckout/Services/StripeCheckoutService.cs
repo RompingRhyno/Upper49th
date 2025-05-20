@@ -37,6 +37,12 @@ public class StripeCheckoutService : IStripeCheckoutService
         return session.Url;
     }
 
+    public async Task<string> CreateRedirectUrl(Order order, string paymentType)
+    {
+        var session = await CreateUrlSession(order, paymentType);
+        return session.Url;
+    }
+
     public async Task<bool> WebHookProcessPayment(string stripeSignature, string json)
     {
         try
@@ -91,11 +97,25 @@ public class StripeCheckoutService : IStripeCheckoutService
         }
     }
 
-    private async Task<Session> CreateUrlSession(Order order)
+    private async Task<Session> CreateUrlSession(Order order, string paymentType = "regular")
     {
         StripeConfiguration.ApiKey = _stripeCheckoutPaymentSettings.ApiKey;
 
         var storeLocation = _contextAccessor.StoreContext.CurrentHost.Url.TrimEnd('/');
+
+        string successUrl;
+        string cancelUrl;
+
+        if (paymentType == "membership")
+        {
+            successUrl = $"{storeLocation}/membership/paymentsuccess?orderId={order.Id}";
+            cancelUrl = $"{storeLocation}/membership/paymentcancel?orderId={order.Id}";
+        }
+        else
+        {
+            successUrl = $"{storeLocation}/checkout/completesuccess?orderId={order.Id}";
+            cancelUrl = $"{storeLocation}/checkout/paymentcancel?orderId={order.Id}";
+        }
 
         var options = new SessionCreateOptions
         {
@@ -118,8 +138,8 @@ public class StripeCheckoutService : IStripeCheckoutService
                 Metadata = new Dictionary<string, string> { { "order_guid", order.OrderGuid.ToString() } }
             },
             Mode = "payment",
-            SuccessUrl = $"{storeLocation}/membership/paymentsuccess?orderId={order.Id}",
-            CancelUrl = $"{storeLocation}/membership/paymentcancel?orderId={order.Id}"
+            SuccessUrl = successUrl,
+            CancelUrl = cancelUrl
         };
         var service = new SessionService();
         var session = await service.CreateAsync(options);

@@ -374,7 +374,7 @@ namespace Customer.Membership.Controllers
                         await _paymentTransactionService.InsertPaymentTransaction(paymentTransaction);
 
                         // Get redirect url
-                        var redirectUrl = await _stripeCheckoutService.CreateRedirectUrl(newOrder);
+                        var redirectUrl = await _stripeCheckoutService.CreateRedirectUrl(newOrder, "membership");
                         _logger.LogWarning(redirectUrl);
 
                         if (!string.IsNullOrEmpty(redirectUrl))
@@ -384,13 +384,6 @@ namespace Customer.Membership.Controllers
                         // For non-redirect methods, get the view component name (CURRENTLY UNUSED)
                         else
                         {
-                            // paymentProcessModel.PaymentViewComponent = "PaymentBrainTree"; //paymentMethod.GetPublicViewComponentName();
-
-                            // paymentProcessModel.PaymentAdditionalData = new Dictionary<string, string>
-                            // {
-                            //     { "amount", (await GetPlanAmount(model.SelectedPlan)).ToString() },
-                            //     { "currency", _workContext.WorkingCurrency.CurrencyCode }
-                            // };
                         }
                         return View("~/Views/Membership/SignUp.cshtml", paymentProcessModel);
                     }

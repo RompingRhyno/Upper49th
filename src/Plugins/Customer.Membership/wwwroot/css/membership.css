@@ -69,3 +69,17 @@
 .card-body {
     text-align: center;
 }
+
+.responsive-img {
+    max-width: 100%;
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+.index-container {
+    width: 100%; 
+    max-width: 100%; 
+    overflow-x: hidden;
+}
