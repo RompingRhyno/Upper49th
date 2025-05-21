@@ -41,6 +41,8 @@ public class PaymentStripeCheckoutController : BasePaymentController
     [HttpPost]
     public async Task<IActionResult> WebHook()
     {
+        _logger.LogWarning("STRIPE WEBHOOK REACHED SUCCESFULLY");
+        Console.WriteLine("STRIPE WEBHOOK REACHED SUCCESFULLY");
         var json = await new StreamReader(Request.Body).ReadToEndAsync();
         try
         {
