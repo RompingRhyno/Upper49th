@@ -56,7 +56,7 @@ public class AdminMembershipController : BasePluginController
         var availableRoles = allRoles
         .Where(g => !configuredRoles.Contains(g.Name))
         .Select(g => g.Name)
-        .Where(g => g.Contains("Member"))
+        .Where((g => Regex.IsMatch(g, @"\bMember\b")))
         .ToList();
 
         if (settingPlans.Any())

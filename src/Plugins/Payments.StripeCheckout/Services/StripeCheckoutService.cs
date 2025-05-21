@@ -113,8 +113,8 @@ public class StripeCheckoutService : IStripeCheckoutService
         }
         else
         {
-            successUrl = $"{storeLocation}/checkout/completesuccess?orderId={order.Id}";
-            cancelUrl = $"{storeLocation}/checkout/paymentcancel?orderId={order.Id}";
+            successUrl = $"{storeLocation}/orderdetails/{order.Id}";
+            cancelUrl = $"{storeLocation}/Plugins/PaymentStripeCheckout/CancelOrder/{order.Id}";
         }
 
         var options = new SessionCreateOptions
