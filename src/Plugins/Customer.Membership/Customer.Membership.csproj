@@ -61,12 +61,12 @@
   </ItemGroup>
   
   <ItemGroup>
-    <None Update="logo.png">
+    <None Update="logo.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
-  <Target Name="CopyPluginStaticFilesToWebRoot" AfterTargets="Build">
+  <!-- <Target Name="CopyPluginStaticFilesToWebRoot" AfterTargets="Build">
     <ItemGroup>
       <_PluginStaticFiles Include="wwwroot\**\*" />
     </ItemGroup>
@@ -74,5 +74,5 @@
       SourceFiles="@(_PluginStaticFiles)"
       DestinationFiles="@(_PluginStaticFiles->'..\..\Web\Grand.Web\wwwroot\Plugins\Customer.Membership\%(RecursiveDir)%(Filename)%(Extension)')"
       SkipUnchangedFiles="true" />
-  </Target>
+  </Target> -->
 </Project>
