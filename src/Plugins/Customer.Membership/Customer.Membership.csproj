@@ -57,7 +57,7 @@
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\Web\Grand.Web\Grand.Web.csproj" />
-    <ProjectReference Include="..\..\Plugins\Payments.StripeCheckout\Payments.StripeCheckout.csproj" />
+    <ProjectReference Include="..\..\Plugins\Payments.StripeUpper49th\Payments.StripeCheckout.csproj" />
     <ProjectReference Include="Data\Customer.Membership.Data.csproj" />
   </ItemGroup>
   

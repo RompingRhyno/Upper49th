@@ -35,8 +35,9 @@ using Grand.Domain.Payments;
 using Grand.Web.Models.Common;
 using Grand.Domain.Directory;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Payments.StripeCheckout.Services;
+using Payments.StripeUpper49th.Services;
 using Grand.Web.Common.Security.Authorization;
+using Grand.Web.Common.Helpers;
 
 namespace Customer.Membership.Controllers
 {
@@ -58,6 +59,7 @@ namespace Customer.Membership.Controllers
         private readonly IPaymentTransactionService _paymentTransactionService;
         private readonly IStripeCheckoutService _stripeCheckoutService;
         private readonly IUserSubscriptionRepository _userSubscriptionRepository;
+        private readonly IAdminStoreService _adminStoreService;
 
 
 
@@ -76,7 +78,8 @@ namespace Customer.Membership.Controllers
             ICountryService countryService,
             IPaymentTransactionService paymentTransactionService,
             IStripeCheckoutService stripeCheckoutService,
-            IUserSubscriptionRepository userSubscriptionRepository)
+            IUserSubscriptionRepository userSubscriptionRepository,
+            IAdminStoreService adminStoreService)
         {
             _logger = logger;
             _workContext = contextAccessor.WorkContext;
@@ -93,6 +96,7 @@ namespace Customer.Membership.Controllers
             _paymentTransactionService = paymentTransactionService;
             _stripeCheckoutService = stripeCheckoutService;
             _userSubscriptionRepository = userSubscriptionRepository;
+            _adminStoreService = adminStoreService;
         }
 
         [HttpGet("", Name = "MembershipIndex")]
@@ -275,6 +279,18 @@ namespace Customer.Membership.Controllers
                 await _customerService.UpdateBillingAddress(address, _workContext.CurrentCustomer.Id);
 
                 // Move to step 3
+
+                var storeScope = await _adminStoreService.GetActiveStore();
+                var paymentSettings = await _settingService.LoadSetting<PaymentSettings>(storeScope);
+
+                const string myPluginSystemName = "Payments.StripeUpper49th";
+
+                if (!paymentSettings.ActivePaymentProviderSystemNames.Contains(myPluginSystemName))
+                {
+                    paymentSettings.ActivePaymentProviderSystemNames.Add(myPluginSystemName);
+                    await _settingService.SaveSetting(paymentSettings, storeScope);
+                }
+
                 var paymentSelectionModel = new PaymentMethodSelectionModel()
                 {
                     CurrentStep = 3,
@@ -334,7 +350,7 @@ namespace Customer.Membership.Controllers
                         var newOrder = new Order
                         {
                             OrderNumber = GenerateOrderNumber(),
-                            OrderTotal = (double)(await GetPlanAmount(model.SelectedPlan)),
+                            OrderTotal = (double)await GetPlanAmount(model.SelectedPlan),
                             CustomerCurrencyCode = _workContext.WorkingCurrency?.CurrencyCode,
                             CustomerEmail = _workContext.CurrentCustomer.Email,
                             OrderGuid = Guid.NewGuid(),
@@ -376,9 +392,17 @@ namespace Customer.Membership.Controllers
 
                         await _paymentTransactionService.InsertPaymentTransaction(paymentTransaction);
 
+                        // Check if customer has an existing Stripe ID
+                        var userId = newOrder.CustomerId;
+                        var existingCustomerId = await GetStripeCustomerIdIfExists(userId);
+
                         // Get redirect url
-                        var redirectUrl = await _stripeCheckoutService.CreateRedirectUrl(newOrder, "membership");
+                        var redirectUrl = await _stripeCheckoutService.CreateSubscriptionRedirectUrl(newOrder, existingCustomerId);
                         _logger.LogWarning(redirectUrl);
+
+                        // // New using stripe upper49th
+                        // var stripeSession = await CreateSubscriptionSession(newOrder);
+                        // var redirectUrl = session.Url;
 
                         if (!string.IsNullOrEmpty(redirectUrl))
                         {
@@ -397,6 +421,7 @@ namespace Customer.Membership.Controllers
 
         [CustomerGroupAuthorize(SystemCustomerGroupNames.Registered)]
         [HttpGet("paymentsuccess")]
+        [CustomerGroupAuthorize(SystemCustomerGroupNames.Registered)]
         public async Task<IActionResult> PaymentSuccess(string orderId)
         {
 
@@ -427,8 +452,10 @@ namespace Customer.Membership.Controllers
 
         [CustomerGroupAuthorize(SystemCustomerGroupNames.Registered)]
         [HttpGet("paymentcancel")]
+        [CustomerGroupAuthorize(SystemCustomerGroupNames.Registered)]
         public async Task<IActionResult> PaymentCancel(string orderId)
         {
+
             if (string.IsNullOrEmpty(orderId))
                 return BadRequest("Missing order ID.");
 
@@ -543,10 +570,15 @@ namespace Customer.Membership.Controllers
                 FilterByCountryId = filterByCountryId
             });
 
+            foreach (var method in model.PaymentMethods.ToList())
+            {
+                _logger.LogWarning(method.PaymentMethodSystemName ?? "null");
+            }
+
             // Filter for stripe only currently, other payment methods are not working
             // return model.PaymentMethods.ToList();
 
-            return model.PaymentMethods.Where(p => p.PaymentMethodSystemName.Equals("Payments.StripeCheckout")).ToList();
+            return model.PaymentMethods.Where(p => p.PaymentMethodSystemName.Equals("Payments.StripeUpper49th")).ToList();
         }
 
         // Helper function to get plan role string
@@ -618,5 +650,52 @@ namespace Customer.Membership.Controllers
             return hasCommonSystemName;
 
         }
+
+        // Helper function to check if customer has an existing Stripe ID
+        private async Task<string> GetStripeCustomerIdIfExists(string userId)
+        {
+            var subscription = await _userSubscriptionRepository.GetByUserIdAsync(userId);
+            if (subscription != null &&
+                subscription.Provider == "Payments.StripeUpper49th" &&
+                !string.IsNullOrEmpty(subscription.ProviderCustomerId))
+            {
+                return subscription.ProviderCustomerId;
+            }
+
+            return null;
+        }
+
+        // Helper function to store data with
+        // private async Task SaveSubscriptionDetails(Session session, Order order)
+        // {
+        //     if (session.Customer is string stripeCustomerId && session.ClientReferenceId is string userId)
+        //     {
+        //         var subscriptionId = session.Subscription;
+
+        //         var existing = await _userSubscriptionRepository.GetByUserIdAsync(userId);
+        //         if (existing != null)
+        //         {
+        //             existing.ProviderCustomerId = stripeCustomerId;
+        //             existing.SubscriptionId = subscriptionId;
+        //             await _userSubscriptionRepository.UpdateAsync(existing);
+        //         }
+        //         else
+        //         {
+        //             var newSubscription = new Domain.UserSubscription {
+        //                 UserId = userId,
+        //                 PlanId = order.OrderTags?.FirstOrDefault() ?? string.Empty,
+        //                 Provider = order.PaymentMethodSystemName,
+        //                 ProviderCustomerId = stripeCustomerId,
+        //                 ProviderSubscriptionId = subscriptionId,
+        //                 StartDate = DateTime.UtcNow,
+        //                 EndDate = DateTime.UtcNow.AddDays(30),
+        //                 RenewalDate = DateTime.UtcNow.AddDays(30),
+        //                 Status = SubscriptionStatus.Active,
+        //             };
+        //             await _userSubscriptionRepository.InsertAsync(newSubscription);
+        //         }
+        //     }
+        // }
+
     }
 }

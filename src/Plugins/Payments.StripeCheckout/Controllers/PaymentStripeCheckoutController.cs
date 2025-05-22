@@ -38,20 +38,37 @@ public class PaymentStripeCheckoutController : BasePaymentController
         _stripeCheckoutService = stripeCheckoutService;
     }
 
-    [HttpPost]
-    public async Task<IActionResult> WebHook()
-    {
-        var json = await new StreamReader(Request.Body).ReadToEndAsync();
-        try
-        {
-            await _stripeCheckoutService.WebHookProcessPayment(Request.Headers["Stripe-Signature"], json);
-            return Ok();
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e.Message);
-        }
-    }
+    // [HttpPost]
+    // public async Task<IActionResult> WebHook()
+    // {
+    //     _logger.LogWarning("STRIPE WEBHOOK REACHED SUCCESFULLY");
+    //     Console.WriteLine("STRIPE WEBHOOK REACHED SUCCESFULLY");
+    //     var json = await new StreamReader(Request.Body).ReadToEndAsync();
+    //     try
+    //     {
+    //         var stripeEvent = EventUtility.ConstructEvent(json, stripeSignature, _stripeCheckoutPaymentSettings.WebhookEndpointSecret);
+
+    //         switch (stripeEvent.Type)
+    //         {
+    //             case EventTypes.PaymentIntentSucceeded:
+    //                 await _stripeCheckoutService.WebHookProcessPayment(stripeSignature, json);
+    //                 break;
+    //             case EventTypes.InvoicePaid:
+    //                 //await _stripeCheckoutService.WebHookProcessInvoicePaid(stripeSignature, json);
+    //                 break;
+    //             // You can add more events as needed
+    //             default:
+    //                 _logger.LogInformation($"Unhandled Stripe event type: {stripeEvent.Type}");
+    //                 break;
+    //         }
+
+    //         return Ok();
+    //     }
+    //     catch (Exception e)
+    //     {
+    //         return BadRequest(e.Message);
+    //     }
+    // }
 
     public async Task<IActionResult> CancelOrder(string orderId)
     {

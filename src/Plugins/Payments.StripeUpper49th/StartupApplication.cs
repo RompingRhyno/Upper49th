@@ -14,7 +14,6 @@ public class StartupApplication : IStartupApplication
     {
         services.AddScoped<IPaymentProvider, StripeCheckoutPaymentProvider>();
         services.AddScoped<IStripeCheckoutService, StripeCheckoutService>();
-        services.AddScoped<IRepository<StripeCustomerLink>, MongoRepository<StripeCustomerLink>>();
     }
 
     public int Priority => 10;

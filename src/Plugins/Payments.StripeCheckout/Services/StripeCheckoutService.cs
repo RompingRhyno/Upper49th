@@ -47,6 +47,7 @@ public class StripeCheckoutService : IStripeCheckoutService
     {
         try
         {
+            Console.WriteLine("STRIPE WEBHOOK REACHED SUCCESFULLY");
             var stripeEvent = EventUtility.ConstructEvent(json, stripeSignature,
                 _stripeCheckoutPaymentSettings.WebhookEndpointSecret);
             // Handle the event
