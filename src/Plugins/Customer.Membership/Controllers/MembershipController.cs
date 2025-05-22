@@ -33,7 +33,7 @@ using Grand.Domain.Payments;
 using Grand.Web.Models.Common;
 using Grand.Domain.Directory;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Payments.StripeCheckout.Services;
+using Payments.StripeUpper49th.Services;
 using Grand.Web.Common.Security.Authorization;
 
 namespace Customer.Membership.Controllers
@@ -332,7 +332,7 @@ namespace Customer.Membership.Controllers
                         var newOrder = new Order
                         {
                             OrderNumber = GenerateOrderNumber(),
-                            OrderTotal = (double)(await GetPlanAmount(model.SelectedPlan)),
+                            OrderTotal = (double)await GetPlanAmount(model.SelectedPlan),
                             CustomerCurrencyCode = _workContext.WorkingCurrency?.CurrencyCode,
                             CustomerEmail = _workContext.CurrentCustomer.Email,
                             OrderGuid = Guid.NewGuid(),
@@ -374,8 +374,12 @@ namespace Customer.Membership.Controllers
 
                         await _paymentTransactionService.InsertPaymentTransaction(paymentTransaction);
 
+                        // Check if customer has an existing Stripe ID
+                        var userId = newOrder.CustomerId;
+                        var existingCustomerId = await GetStripeCustomerIdIfExists(userId);
+
                         // Get redirect url
-                        var redirectUrl = await _stripeCheckoutService.CreateRedirectUrl(newOrder, "membership");
+                        var redirectUrl = await _stripeCheckoutService.CreateSubscriptionRedirectUrl(newOrder, existingCustomerId);
                         _logger.LogWarning(redirectUrl);
 
                         // // New using stripe upper49th
@@ -622,38 +626,51 @@ namespace Customer.Membership.Controllers
 
         }
 
-        // Helper function to store data with
-        private async Task SaveSubscriptionDetails(Session session, Order order)
+        // Helper function to check if customer has an existing Stripe ID
+        private async Task<string> GetStripeCustomerIdIfExists(string userId)
         {
-            if (session.Customer is string stripeCustomerId && session.ClientReferenceId is string userId)
+            var subscription = await _userSubscriptionRepository.GetByUserIdAsync(userId);
+            if (subscription != null && 
+                subscription.Provider == "Payments.StripeCheckout" && 
+                !string.IsNullOrEmpty(subscription.ProviderCustomerId))
             {
-                var subscriptionId = session.Subscription;
-
-                var existing = await _userSubscriptionRepository.GetByUserIdAsync(userId);
-                if (existing != null)
-                {
-                    existing.ProviderCustomerId = stripeCustomerId;
-                    existing.SubscriptionId = subscriptionId;
-                    await _userSubscriptionRepository.UpdateAsync(existing);
-                }
-                else
-                {
-                    var newSubscription = new Domain.UserSubscription
-                    {
-                        UserId = userId,
-                        PlanId = order.OrderTags?.FirstOrDefault() ?? string.Empty,
-                        Provider = order.PaymentMethodSystemName,
-                        ProviderCustomerId = stripeCustomerId,
-                        ProviderSubscriptionId = subscriptionId,
-                        StartDate = DateTime.UtcNow,
-                        EndDate = DateTime.UtcNow.AddDays(30),
-                        RenewalDate = DateTime.UtcNow.AddDays(30),
-                        Status = SubscriptionStatus.Active,
-                    };
-                    await _userSubscriptionRepository.InsertAsync(newSubscription);
-                }
+                return subscription.ProviderCustomerId;
             }
+
+            return null;
         }
+
+        // Helper function to store data with
+        // private async Task SaveSubscriptionDetails(Session session, Order order)
+        // {
+        //     if (session.Customer is string stripeCustomerId && session.ClientReferenceId is string userId)
+        //     {
+        //         var subscriptionId = session.Subscription;
+
+        //         var existing = await _userSubscriptionRepository.GetByUserIdAsync(userId);
+        //         if (existing != null)
+        //         {
+        //             existing.ProviderCustomerId = stripeCustomerId;
+        //             existing.SubscriptionId = subscriptionId;
+        //             await _userSubscriptionRepository.UpdateAsync(existing);
+        //         }
+        //         else
+        //         {
+        //             var newSubscription = new Domain.UserSubscription {
+        //                 UserId = userId,
+        //                 PlanId = order.OrderTags?.FirstOrDefault() ?? string.Empty,
+        //                 Provider = order.PaymentMethodSystemName,
+        //                 ProviderCustomerId = stripeCustomerId,
+        //                 ProviderSubscriptionId = subscriptionId,
+        //                 StartDate = DateTime.UtcNow,
+        //                 EndDate = DateTime.UtcNow.AddDays(30),
+        //                 RenewalDate = DateTime.UtcNow.AddDays(30),
+        //                 Status = SubscriptionStatus.Active,
+        //             };
+        //             await _userSubscriptionRepository.InsertAsync(newSubscription);
+        //         }
+        //     }
+        // }
 
     }
 }
