@@ -14,6 +14,7 @@ using Grand.Business.Common.Services.Directory;
 using Grand.Business.Customers.Services;
 using Customer.Membership.Domain;
 using Customer.Membership.Data;
+using Payments.StripeUpper49th.Services;
 
 namespace Customer.Membership;
 
@@ -26,6 +27,7 @@ public class StartupApplication : IStartupApplication
         services.AddScoped<ICustomerService, CustomerService>();
         services.AddScoped<MongoRepository<UserSubscription>>();
         services.AddScoped<IUserSubscriptionRepository, UserSubscriptionRepository>();
+        services.AddScoped<IStripeCheckoutService, StripeCheckoutService>();
     }
 
     public int Priority => 10;

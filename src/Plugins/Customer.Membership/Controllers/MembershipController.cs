@@ -550,10 +550,15 @@ namespace Customer.Membership.Controllers
                 FilterByCountryId = filterByCountryId
             });
 
+            foreach (var method in model.PaymentMethods.ToList())
+            {
+                _logger.LogWarning(method.PaymentMethodSystemName ?? "null");
+            }
+
             // Filter for stripe only currently, other payment methods are not working
             // return model.PaymentMethods.ToList();
 
-            return model.PaymentMethods.Where(p => p.PaymentMethodSystemName.Equals("Payments.StripeCheckout")).ToList();
+            return model.PaymentMethods.Where(p => p.PaymentMethodSystemName.Equals("Payments.StripeUpper49th")).ToList();
         }
 
         // Helper function to get plan role string
@@ -630,8 +635,8 @@ namespace Customer.Membership.Controllers
         private async Task<string> GetStripeCustomerIdIfExists(string userId)
         {
             var subscription = await _userSubscriptionRepository.GetByUserIdAsync(userId);
-            if (subscription != null && 
-                subscription.Provider == "Payments.StripeCheckout" && 
+            if (subscription != null &&
+                subscription.Provider == "Payments.StripeUpper49th" &&
                 !string.IsNullOrEmpty(subscription.ProviderCustomerId))
             {
                 return subscription.ProviderCustomerId;

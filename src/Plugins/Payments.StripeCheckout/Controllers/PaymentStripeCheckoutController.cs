@@ -56,7 +56,7 @@ public class PaymentStripeCheckoutController : BasePaymentController
                     await _stripeCheckoutService.WebHookProcessPayment(stripeSignature, json);
                     break;
                 case EventTypes.InvoicePaid:
-                    await _stripeCheckoutService.WebHookProcessInvoicePaid(stripeSignature, json);
+                    //await _stripeCheckoutService.WebHookProcessInvoicePaid(stripeSignature, json);
                     break;
                 // You can add more events as needed
                 default:
