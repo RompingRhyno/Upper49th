@@ -244,7 +244,7 @@ public class StripeCheckoutService : IStripeCheckoutService
             }
 
             paymentTransaction.AuthorizationTransactionId = paymentIntent.Id;
-            paymentTransaction.PaidAmount += paymentIntent.Amount / 100;
+            paymentTransaction.PaidAmount += paymentIntent.AmountReceived / 100;
 
             await _mediator.Send(new MarkAsPaidCommand { PaymentTransaction = paymentTransaction });
 
