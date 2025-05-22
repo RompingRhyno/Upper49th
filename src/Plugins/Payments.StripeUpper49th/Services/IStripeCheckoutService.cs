@@ -8,4 +8,5 @@ public interface IStripeCheckoutService
     Task<string> CreateSubscriptionRedirectUrl(Order order, string providerCustomerId);
     Task<bool> WebHookProcessPayment(string stripeSignature, string json);
     Task<bool> WebHookProcessInvoicePaid(string stripeSignature, string json);
+    Task WebHookProcessCheckoutSessionCompleted(string stripeSignature, string json);
 }

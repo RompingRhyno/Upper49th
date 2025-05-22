@@ -47,6 +47,7 @@
             <Private>false</Private>
             <ExcludeAssets>all</ExcludeAssets>
         </ProjectReference>
+        <ProjectReference Include="..\Customer.Membership\Data\Customer.Membership.Data.csproj" />
     </ItemGroup>
 
     <ItemGroup>

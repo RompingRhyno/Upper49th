@@ -7,6 +7,11 @@ using Microsoft.Extensions.Logging;
 using Stripe;
 using Stripe.Checkout;
 using Grand.Business.Core.Interfaces.Common.Configuration;
+using Grand.Data;
+using Customer.Membership.Data.Entities;
+using Grand.Business.Core.Interfaces.Checkout.Orders;
+using Grand.Domain.Payments;
+using Customer.Membership.Data.Enums;
 
 namespace Payments.StripeUpper49th.Services;
 
@@ -18,6 +23,8 @@ public class StripeCheckoutService : IStripeCheckoutService
     private readonly StripeCheckoutPaymentSettings _stripeCheckoutPaymentSettings;
     private readonly IContextAccessor _contextAccessor;
     private readonly ISettingService _settingService;
+    private readonly IOrderService _orderService;
+    private readonly IRepository<UserSubscription> _userSubscriptionRepository;
 
     public StripeCheckoutService(
         IContextAccessor contextAccessor,
@@ -25,7 +32,9 @@ public class StripeCheckoutService : IStripeCheckoutService
         ILogger<StripeCheckoutService> logger,
         IMediator mediator,
         IPaymentTransactionService paymentTransactionService,
-        ISettingService settingService)
+        ISettingService settingService,
+        IOrderService orderService,
+        IRepository<UserSubscription> userSubscriptionRepository)
     {
         _contextAccessor = contextAccessor;
         _stripeCheckoutPaymentSettings = stripeCheckoutPaymentSettings;
@@ -33,6 +42,8 @@ public class StripeCheckoutService : IStripeCheckoutService
         _mediator = mediator;
         _paymentTransactionService = paymentTransactionService;
         _settingService = settingService;
+        _orderService = orderService;
+        _userSubscriptionRepository = userSubscriptionRepository;
     }
 
     public async Task<string> CreateRedirectUrl(Order order)
@@ -47,8 +58,7 @@ public class StripeCheckoutService : IStripeCheckoutService
 
         var storeLocation = _contextAccessor.StoreContext.CurrentHost.Url.TrimEnd('/');
 
-        var options = new SessionCreateOptions
-        {
+        var options = new SessionCreateOptions {
             LineItems = [
                 new SessionLineItemOptions {
                     PriceData = new SessionLineItemPriceDataOptions {
@@ -63,17 +73,17 @@ public class StripeCheckoutService : IStripeCheckoutService
             ],
             ClientReferenceId = order.Id,
             CustomerEmail = order.CustomerEmail,
-            PaymentIntentData = new SessionPaymentIntentDataOptions
-            {
+            PaymentIntentData = new SessionPaymentIntentDataOptions {
                 Metadata = new Dictionary<string, string> { { "order_guid", order.OrderGuid.ToString() } }
             },
             Mode = "payment",
             SuccessUrl = $"{storeLocation}/orderdetails/{order.Id}",
             CancelUrl = $"{storeLocation}/Plugins/PaymentStripeCheckout/CancelOrder/{order.Id}"
         };
-
         var service = new SessionService();
-        return await service.CreateAsync(options);
+        var session = await service.CreateAsync(options);
+
+        return session;
     }
 
     public async Task<string> CreateSubscriptionRedirectUrl(Order order, string providerCustomerId)
@@ -94,6 +104,7 @@ public class StripeCheckoutService : IStripeCheckoutService
         var cancelUrl = $"{storeLocation}/membership/paymentcancel?orderId={order.Id}";
 
         var price = await CreateRecurringPrice(order);
+        var planName = order.OrderTags.FirstOrDefault() ?? "Membership Plan";
 
         var options = new SessionCreateOptions
         {
@@ -108,22 +119,17 @@ public class StripeCheckoutService : IStripeCheckoutService
             CustomerEmail = order.CustomerEmail,
             SuccessUrl = successUrl,
             CancelUrl = cancelUrl,
-            // InvoiceCreation = new SessionInvoiceCreationOptions
-            // {
-            //     Enabled = true,
-            //     InvoiceData = new SessionInvoiceCreationInvoiceDataOptions
-            //     {
-            //         Metadata = new Dictionary<string, string> {
-            //             { "order_guid", order.OrderGuid.ToString() }
-            //         }
-            //     }
-            // },
+            Metadata = new Dictionary<string, string>
+            {
+                { "order_guid", order.OrderGuid.ToString() },
+                { "customer_id", order.CustomerId },
+                { "plan", planName }
+            }
         };
 
         var service = new SessionService();
         return await service.CreateAsync(options);
     }
-
 
     // Todo: mapping the price to planids that are in joe's model
     private async Task<Price> CreateRecurringPrice(Order order)
@@ -134,7 +140,6 @@ public class StripeCheckoutService : IStripeCheckoutService
             : order.CustomerCurrencyCode.ToLowerInvariant();
 
         var planName = order.OrderTags.FirstOrDefault() ?? "Membership Plan";
-
         var priceOptions = new PriceCreateOptions
         {
             UnitAmount = amountInCents,
@@ -146,12 +151,7 @@ public class StripeCheckoutService : IStripeCheckoutService
             ProductData = new PriceProductDataOptions
             {
                 Name = planName
-            },
-            Metadata = new Dictionary<string, string> {
-                { "order_guid", order.OrderGuid.ToString() },
-                { "customer_id", order.CustomerId },
-                { "plan", planName }
-            }
+            }          
         };
 
         var priceService = new PriceService();
@@ -185,54 +185,65 @@ public class StripeCheckoutService : IStripeCheckoutService
         }
     }
 
-    public async Task<bool> WebHookProcessInvoicePaid(string stripeSignature, string json)
+    public async Task WebHookProcessCheckoutSessionCompleted(string stripeSignature, string json)
     {
-        try
+        var stripeEvent = EventUtility.ConstructEvent(json, stripeSignature, _stripeCheckoutPaymentSettings.WebhookEndpointSecret);
+
+        if (stripeEvent.Data.Object is not Session session)
+            return;
+
+        // Check if payment is complete
+        if (session.PaymentStatus != "paid")
+            return;
+
+        // Retrieve metadata
+        var customerId = session.Metadata["CustomerId"];
+        var orderGuidString = session.Metadata["OrderGuid"];
+        var planId = session.Metadata["PlanId"];
+        var providerCustomerId = session.Customer is Stripe.Customer c ? c.Id : session.Customer?.ToString();
+        var providerSubscriptionId = session.Subscription is Stripe.Subscription s ? s.Id : session.Subscription?.ToString();
+
+
+        if (!Guid.TryParse(orderGuidString, out var orderGuid))
+            throw new Exception("Invalid OrderGuid metadata from Stripe session.");
+
+        var order = await _orderService.GetOrderByGuid(orderGuid);
+        if (order == null)
+            throw new Exception($"Order with GUID {orderGuid} not found.");
+
+        // Update order payment status
+        order.PaymentStatusId = PaymentStatus.Paid;
+        await _orderService.UpdateOrder(order);
+
+        // Mark transaction as paid
+        var transaction = await _paymentTransactionService.GetOrderByGuid(order.OrderGuid);
+        if (transaction != null)
         {
-            var stripeEvent = EventUtility.ConstructEvent(json, stripeSignature, _stripeCheckoutPaymentSettings.WebhookEndpointSecret);
-            var invoice = stripeEvent.Data.Object as Invoice;
-            if (invoice == null)
-            {
-                _logger.LogError("Invalid invoice object in webhook");
-                return false;
-            }
-
-            // Extract the order_guid
-            string orderGuidString = null;
-
-            if (invoice.Metadata != null && invoice.Metadata.TryGetValue("order_guid", out var guidFromMetadata))
-            {
-                orderGuidString = guidFromMetadata;
-            }
-
-            if (string.IsNullOrEmpty(orderGuidString) || !Guid.TryParse(orderGuidString, out var orderGuid))
-            {
-                _logger.LogError("order_guid not found or invalid in invoice.paid event metadata");
-                return false;
-            }
-
-            var paymentTransaction = await _paymentTransactionService.GetOrderByGuid(orderGuid);
-            if (paymentTransaction == null)
-            {
-                _logger.LogError($"No payment transaction found for order_guid: {orderGuid}");
-                return false;
-            }
-
-            await _mediator.Send(new MarkAsPaidCommand { PaymentTransaction = paymentTransaction });
-
-            _logger.LogInformation($"Invoice paid processed for order_guid: {orderGuid}");
-            return true;
+            await _mediator.Send(new MarkAsPaidCommand { PaymentTransaction = transaction });
         }
-        catch (StripeException e)
+
+        // Create UserSubscription document
+        var subscription = new UserSubscription
         {
-            _logger.LogError(e, "StripeException in invoice.paid webhook");
-            return false;
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Unexpected error in WebHookProcessInvoicePaid");
-            return false;
-        }
+            UserId = customerId,
+            PlanId = planId,
+            Provider = "Payments.StripeUpper49th",
+            ProviderCustomerId = providerCustomerId,
+            ProviderSubscriptionId = providerSubscriptionId,
+            StartDate = DateTime.UtcNow,
+            RenewalDate = DateTime.UtcNow.AddMonths(1),
+            Status = SubscriptionStatus.Active,
+            IsActive = true,
+            CreatedOnUtc = DateTime.UtcNow
+        };
+
+        await _userSubscriptionRepository.InsertAsync(subscription);
+    }
+
+    public async Task<bool> WebHookProcessInvoicePaid(string invoiceId, string customerId)
+    {
+        _logger.LogInformation("Invoice paid webhook received.");
+        return true;
     }
 
     private async Task CreatePaymentTransaction(PaymentIntent paymentIntent)
