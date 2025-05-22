@@ -2,18 +2,18 @@ using Grand.Domain;
 using System;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using Customer.Membership.Domain.Enums;
+using Customer.Membership.Data.Enums;
 
-namespace Customer.Membership.Domain
+namespace Customer.Membership.Data.Entities
 {
     public class UserSubscription : BaseEntity
     {
-        public string UserId { get; set; }
-        public string PlanId { get; set; }
 
-        public string Provider { get; set; } // Stripe, PayPal, etc.
-        public string ProviderCustomerId { get; set; }
-        public string ProviderSubscriptionId { get; set; }
+        public string UserId { get; set; } = string.Empty;
+        public string PlanId { get; set; } = string.Empty;
+        public string Provider { get; set; } = string.Empty;
+        public string ProviderCustomerId { get; set; } = string.Empty;
+        public string ProviderSubscriptionId { get; set; } = string.Empty;
 
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }

@@ -17,6 +17,8 @@ using Grand.Business.Core.Interfaces.Common.Configuration;
 using Customer.Membership.Domain.Settings;
 using Customer.Membership.Domain;
 using Customer.Membership.Data;
+using Customer.Membership.Data.Repositories;
+using Customer.Membership.Data.Entities;
 using Grand.Web.Models.Checkout;
 using PaymentMethodModel = Grand.Web.Models.Checkout.CheckoutPaymentMethodModel.PaymentMethodModel;
 using MediatR;

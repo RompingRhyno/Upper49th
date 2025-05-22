@@ -14,6 +14,9 @@ using Grand.Business.Common.Services.Directory;
 using Grand.Business.Customers.Services;
 using Customer.Membership.Domain;
 using Customer.Membership.Data;
+using Customer.Membership.Data.Entities;
+using Customer.Membership.Data.Repositories;
+
 
 namespace Customer.Membership;
 

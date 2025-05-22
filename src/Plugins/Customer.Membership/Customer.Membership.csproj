@@ -2,6 +2,9 @@
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <OutputPath>..\..\Web\Grand.Web\Plugins\Customer.Membership\</OutputPath>
@@ -53,11 +56,9 @@
     <ProjectReference Include="..\..\Web\Grand.Web.Common\Grand.Web.Common.csproj">
       <Private>false</Private>
     </ProjectReference>
-      <ProjectReference Include="..\..\Core\Grand.Infrastructure\Grand.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\Core\Grand.Domain\Grand.Domain.csproj" />
-    <ProjectReference Include="..\..\Web\Grand.Web.Common\Grand.Web.Common.csproj" />
     <ProjectReference Include="..\..\Web\Grand.Web\Grand.Web.csproj" />
     <ProjectReference Include="..\..\Plugins\Payments.StripeCheckout\Payments.StripeCheckout.csproj" />
+    <ProjectReference Include="Data\Customer.Membership.Data.csproj" />
   </ItemGroup>
   
   <ItemGroup>
@@ -65,6 +66,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Data\**\*.cs" />
+</ItemGroup>
 
   <!-- <Target Name="CopyPluginStaticFilesToWebRoot" AfterTargets="Build">
     <ItemGroup>

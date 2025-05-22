@@ -1,11 +1,12 @@
 using Grand.Data.Mongo;
 using Grand.Data;
-using Customer.Membership.Domain;
+using Customer.Membership.Data;
+using Customer.Membership.Data.Entities;
 using MongoDB.Driver;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Customer.Membership.Data
+namespace Customer.Membership.Data.Repositories
 {
     public class UserSubscriptionRepository : MongoRepository<UserSubscription>, IUserSubscriptionRepository
     {

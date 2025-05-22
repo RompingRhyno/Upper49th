@@ -1,4 +1,4 @@
-namespace Customer.Membership.Domain.Enums
+namespace Customer.Membership.Data.Enums
 
 {
     public enum SubscriptionStatus
