@@ -14,11 +14,11 @@ public class EndpointProvider : IEndpointProvider
             new { controller = "PaymentStripeCheckout", action = "PaymentInfo", area = "" }
         );
 
-        //WebHook
-        endpointRouteBuilder.MapControllerRoute(StripeCheckoutDefaults.WebHook,
-            "Plugins/PaymentStripeCheckout/WebHook",
-            new { controller = "PaymentStripeCheckout", action = "WebHook", area = "" }
-        );
+        // //WebHook
+        // endpointRouteBuilder.MapControllerRoute(StripeCheckoutDefaults.WebHook,
+        //     "Plugins/PaymentStripeCheckout/WebHook",
+        //     new { controller = "PaymentStripeCheckout", action = "WebHook", area = "" }
+        // );
 
         //Cancel
         endpointRouteBuilder.MapControllerRoute("Plugin.Payments.StripeCheckout.CancelOrder",

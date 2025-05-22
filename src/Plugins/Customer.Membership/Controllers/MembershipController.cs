@@ -419,7 +419,6 @@ namespace Customer.Membership.Controllers
             return View("~/Views/Membership/Index.cshtml");
         }
 
-        [CustomerGroupAuthorize(SystemCustomerGroupNames.Registered)]
         [HttpGet("paymentsuccess")]
         [CustomerGroupAuthorize(SystemCustomerGroupNames.Registered)]
         public async Task<IActionResult> PaymentSuccess(string orderId)
@@ -450,7 +449,6 @@ namespace Customer.Membership.Controllers
             return View("PaymentSuccess", model);
         }
 
-        [CustomerGroupAuthorize(SystemCustomerGroupNames.Registered)]
         [HttpGet("paymentcancel")]
         [CustomerGroupAuthorize(SystemCustomerGroupNames.Registered)]
         public async Task<IActionResult> PaymentCancel(string orderId)
