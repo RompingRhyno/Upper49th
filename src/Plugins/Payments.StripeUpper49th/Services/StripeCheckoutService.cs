@@ -6,6 +6,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using Stripe;
 using Stripe.Checkout;
+using Grand.Business.Core.Interfaces.Common.Configuration;
 
 namespace Payments.StripeUpper49th.Services;
 
@@ -16,19 +17,22 @@ public class StripeCheckoutService : IStripeCheckoutService
     private readonly IPaymentTransactionService _paymentTransactionService;
     private readonly StripeCheckoutPaymentSettings _stripeCheckoutPaymentSettings;
     private readonly IContextAccessor _contextAccessor;
+    private readonly ISettingService _settingService;
 
     public StripeCheckoutService(
         IContextAccessor contextAccessor,
         StripeCheckoutPaymentSettings stripeCheckoutPaymentSettings,
         ILogger<StripeCheckoutService> logger,
         IMediator mediator,
-        IPaymentTransactionService paymentTransactionService)
+        IPaymentTransactionService paymentTransactionService,
+        ISettingService settingService)
     {
         _contextAccessor = contextAccessor;
         _stripeCheckoutPaymentSettings = stripeCheckoutPaymentSettings;
         _logger = logger;
         _mediator = mediator;
         _paymentTransactionService = paymentTransactionService;
+        _settingService = settingService;
     }
 
     public async Task<string> CreateRedirectUrl(Order order)
@@ -80,9 +84,9 @@ public class StripeCheckoutService : IStripeCheckoutService
 
     private async Task<Session> CreateSubscriptionUrlSession(Order order, string providerCustomerId)
     {
-        if (string.IsNullOrWhiteSpace(providerCustomerId))
-            throw new ArgumentException("Provider customer ID cannot be null or empty.", nameof(providerCustomerId));
-            
+        // if (string.IsNullOrWhiteSpace(providerCustomerId))
+        //     throw new ArgumentException("Provider customer ID cannot be null or empty.", nameof(providerCustomerId));
+
         StripeConfiguration.ApiKey = _stripeCheckoutPaymentSettings.ApiKey;
 
         var storeLocation = _contextAccessor.StoreContext.CurrentHost.Url.TrimEnd('/');
@@ -104,16 +108,16 @@ public class StripeCheckoutService : IStripeCheckoutService
             CustomerEmail = order.CustomerEmail,
             SuccessUrl = successUrl,
             CancelUrl = cancelUrl,
-            InvoiceCreation = new SessionInvoiceCreationOptions
-            {
-                Enabled = true,
-                InvoiceData = new SessionInvoiceCreationInvoiceDataOptions
-                {
-                    Metadata = new Dictionary<string, string> {
-                        { "order_guid", order.OrderGuid.ToString() }
-                    }
-                }
-            },
+            // InvoiceCreation = new SessionInvoiceCreationOptions
+            // {
+            //     Enabled = true,
+            //     InvoiceData = new SessionInvoiceCreationInvoiceDataOptions
+            //     {
+            //         Metadata = new Dictionary<string, string> {
+            //             { "order_guid", order.OrderGuid.ToString() }
+            //         }
+            //     }
+            // },
         };
 
         var service = new SessionService();
@@ -200,7 +204,7 @@ public class StripeCheckoutService : IStripeCheckoutService
             {
                 orderGuidString = guidFromMetadata;
             }
-            
+
             if (string.IsNullOrEmpty(orderGuidString) || !Guid.TryParse(orderGuidString, out var orderGuid))
             {
                 _logger.LogError("order_guid not found or invalid in invoice.paid event metadata");

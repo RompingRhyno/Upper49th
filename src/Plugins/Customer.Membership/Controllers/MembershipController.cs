@@ -35,6 +35,7 @@ using Grand.Domain.Directory;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Payments.StripeUpper49th.Services;
 using Grand.Web.Common.Security.Authorization;
+using Grand.Web.Common.Helpers;
 
 namespace Customer.Membership.Controllers
 {
@@ -56,6 +57,7 @@ namespace Customer.Membership.Controllers
         private readonly IPaymentTransactionService _paymentTransactionService;
         private readonly IStripeCheckoutService _stripeCheckoutService;
         private readonly IUserSubscriptionRepository _userSubscriptionRepository;
+        private readonly IAdminStoreService _adminStoreService;
 
 
 
@@ -74,7 +76,8 @@ namespace Customer.Membership.Controllers
             ICountryService countryService,
             IPaymentTransactionService paymentTransactionService,
             IStripeCheckoutService stripeCheckoutService,
-            IUserSubscriptionRepository userSubscriptionRepository)
+            IUserSubscriptionRepository userSubscriptionRepository,
+            IAdminStoreService adminStoreService)
         {
             _logger = logger;
             _workContext = contextAccessor.WorkContext;
@@ -91,6 +94,7 @@ namespace Customer.Membership.Controllers
             _paymentTransactionService = paymentTransactionService;
             _stripeCheckoutService = stripeCheckoutService;
             _userSubscriptionRepository = userSubscriptionRepository;
+            _adminStoreService = adminStoreService;
         }
 
         [HttpGet("", Name = "MembershipIndex")]
@@ -273,6 +277,18 @@ namespace Customer.Membership.Controllers
                 await _customerService.UpdateBillingAddress(address, _workContext.CurrentCustomer.Id);
 
                 // Move to step 3
+
+                var storeScope = await _adminStoreService.GetActiveStore();
+                var paymentSettings = await _settingService.LoadSetting<PaymentSettings>(storeScope);
+
+                const string myPluginSystemName = "Payments.StripeUpper49th";
+
+                if (!paymentSettings.ActivePaymentProviderSystemNames.Contains(myPluginSystemName))
+                {
+                    paymentSettings.ActivePaymentProviderSystemNames.Add(myPluginSystemName);
+                    await _settingService.SaveSetting(paymentSettings, storeScope);
+                }
+
                 var paymentSelectionModel = new PaymentMethodSelectionModel()
                 {
                     CurrentStep = 3,
