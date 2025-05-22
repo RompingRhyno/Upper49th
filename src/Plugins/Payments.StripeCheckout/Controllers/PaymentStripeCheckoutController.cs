@@ -7,8 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Payments.StripeCheckout.Models;
 using Payments.StripeCheckout.Services;
-using Stripe;
-using Stripe.Checkout;
 
 namespace Payments.StripeCheckout.Controllers;
 
@@ -43,9 +41,9 @@ public class PaymentStripeCheckoutController : BasePaymentController
     [HttpPost]
     public async Task<IActionResult> WebHook()
     {
+        _logger.LogWarning("STRIPE WEBHOOK REACHED SUCCESFULLY");
+        Console.WriteLine("STRIPE WEBHOOK REACHED SUCCESFULLY");
         var json = await new StreamReader(Request.Body).ReadToEndAsync();
-        var stripeSignature = Request.Headers["Stripe-Signature"];
-
         try
         {
             var stripeEvent = EventUtility.ConstructEvent(json, stripeSignature, _stripeCheckoutPaymentSettings.WebhookEndpointSecret);
@@ -68,11 +66,9 @@ public class PaymentStripeCheckoutController : BasePaymentController
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Webhook error");
             return BadRequest(e.Message);
         }
     }
-
 
     public async Task<IActionResult> CancelOrder(string orderId)
     {
