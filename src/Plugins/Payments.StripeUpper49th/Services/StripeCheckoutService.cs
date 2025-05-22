@@ -197,9 +197,9 @@ public class StripeCheckoutService : IStripeCheckoutService
             return;
 
         // Retrieve metadata
-        var customerId = session.Metadata["CustomerId"];
-        var orderGuidString = session.Metadata["OrderGuid"];
-        var planId = session.Metadata["PlanId"];
+        var customerId = session.Metadata["customer_id"];
+        var orderGuidString = session.Metadata["order_guid"];
+        var planId = session.Metadata["plan"];
         var providerCustomerId = session.Customer is Stripe.Customer c ? c.Id : session.Customer?.ToString();
         var providerSubscriptionId = session.Subscription is Stripe.Subscription s ? s.Id : session.Subscription?.ToString();
 
